@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'app01.apps.App01Config'
 ]
 
 MIDDLEWARE = [
@@ -126,7 +127,7 @@ TENCENT_SMS_APP_KEY = '1111'
 TENCENT_SMS_APP_SIGN = "柯梦的个人平台"
 # 腾讯云短信平台签名
 TENCENT_SMS_APP_TEMPLATE = {
-    'register':607842,
+    'register':607864,
     'login': 607831,
 }
 try:
