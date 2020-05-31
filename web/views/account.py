@@ -3,7 +3,7 @@
 """
 from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
-from web.forms.account import RegisterModelForm, SendSmsForm, LoginSMSForm
+from web.forms.account import RegisterModelForm, SendSmsForm, LoginSMSForm, LoginForm
 from web import models
 
 
@@ -44,3 +44,20 @@ def login_sms(request):
         request.session['user_name'] = user_object.username
         return JsonResponse({'status':True,'data':'/index/'})
     return JsonResponse({'status':False,'error':form.errors})
+
+
+def login(request):
+    form = LoginForm()
+    return render(request,'login.html', {'form':form})
+
+
+def img_code(request):
+    """读取验证码到内存后返回给页面"""
+    from utils.image_code import check_code
+    from io import BytesIO
+    img,code = check_code()
+    request.session['img_code'] = code
+    request.session.set_expiry(60)
+    stream = BytesIO()
+    img.save(stream, 'png')
+    return HttpResponse(stream.getvalue())
