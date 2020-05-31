@@ -9,7 +9,8 @@
 {% block content %}
     <div class="account">
         <div class="title">用户注册</div>
-        <form>
+        <form id="regForm" method="POST" novalidate>
+            {% csrf_token %}
             {% for field in form %}
                 {% if field.name == 'code' %}
                     <div class="form-group">
@@ -17,6 +18,7 @@
                         <div class="clearfix">
                             <div class="col-md-7" style="padding-left: 0">
                                 {{ field }}
+                                <span class="error-msg"></span>
                             </div>
                             <div class="col-md-5">
                                 <input id="btnSms" type="button" class="btn btn-default" value="点击获取验证码">
@@ -32,7 +34,12 @@
                     </div>
                 {% endif %}
             {% endfor %}
-            <button type="submit" class="btn btn-primary">注册</button>
+            <div class="row">
+                <div class="col-md-3">
+                    <input type="button" class="btn btn-primary" id="btnSubmit" value="注册"/>
+                </div>
+            </div>
+
         </form>
     </div>
 
@@ -42,6 +49,7 @@
         // 页面框架加载完成之后自动执行的函数
         $(function () {
             bindClickBtnSms();
+            bindClickSubmit();
         });
 
         /* 点击获取验证码的按钮绑定事件*/
@@ -73,6 +81,33 @@
                 })
             })
         }
+
+        /*点击提交表单数据,实现注册*/
+        function bindClickSubmit() {
+            $('#btnSubmit').click(function () {
+                $('.error-msg').empty();
+                // 手机表单中的数据(找到每一个数据) $('#regForm').serialize()
+                // 所有字段数据+csrf_token
+                // 通过ajax发送到后台
+                $.ajax({
+                    url: "{% url 'register' %}",
+                    type: "POST",
+                    data: $('#regForm').serialize(),
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            location.href = res.data;
+                        } else {
+                            // console.log(res);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next().text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
         /* 倒计时 */
         function sendSmsRemind() {
             var $smsBtn = $('#btnSms');
@@ -80,14 +115,16 @@
 
             var time = 60;
             var remind = setInterval(function () {
-                $smsBtn.val(time+'秒重新发送');
-                time = time -1;
-                if (time<1) {
+                $smsBtn.val(time + '秒重新发送');
+                time = time - 1;
+                if (time < 1) {
                     clearInterval(remind);
                     $smsBtn.val('点击获取验证码').prop('disabled', false);
                 }
 
-            },1000)
+            }, 1000)
         }
+
+
     </script>
 {% endblock %}
