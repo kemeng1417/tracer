@@ -3,7 +3,7 @@
 """
 from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
-from web.forms.account import RegisterModelForm, SendSmsForm
+from web.forms.account import RegisterModelForm, SendSmsForm, LoginSMSForm
 from web import models
 
 
@@ -28,3 +28,19 @@ def send_sms(request):
     if form.is_valid():
         return JsonResponse({'status': True})
     return JsonResponse({'status': False, 'error': form.errors})
+
+
+def login_sms(request):
+    """ 短信登录 """
+    if request.method == 'GET':
+        form = LoginSMSForm()
+        return render(request, 'login_sms.html', {'form':form})
+
+    form = LoginSMSForm(request.POST)
+    if form.is_valid():
+        user_object = form.cleaned_data['mobile_phone']
+        # 保存用户名到session中
+        request.session['user_id'] = user_object.pk
+        request.session['user_name'] = user_object.username
+        return JsonResponse({'status':True,'data':'/index/'})
+    return JsonResponse({'status':False,'error':form.errors})
