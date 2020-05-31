@@ -15,11 +15,11 @@
                     <div class="form-group">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         <div class="clearfix">
-                            <div class="col-md-6" style="padding-left: 0">
+                            <div class="col-md-7" style="padding-left: 0">
                                 {{ field }}
                             </div>
-                            <div class="col-md-6">
-                                <input type="button" class="btn btn-default" value="点击获取验证码">
+                            <div class="col-md-5">
+                                <input id="btnSms" type="button" class="btn btn-default" value="点击获取验证码">
                             </div>
                         </div>
 
@@ -28,6 +28,7 @@
                     <div class="form-group">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
+                        <span class="error-msg"></span>
                     </div>
                 {% endif %}
             {% endfor %}
@@ -35,4 +36,58 @@
         </form>
     </div>
 
+{% endblock %}
+{% block js %}
+    <script>
+        // 页面框架加载完成之后自动执行的函数
+        $(function () {
+            bindClickBtnSms();
+        });
+
+        /* 点击获取验证码的按钮绑定事件*/
+        function bindClickBtnSms() {
+            $('#btnSms').click(function () {
+                $(".error-msg").empty();
+                //获取用户输入的手机号
+                var mobilePhone = $('#id_mobile_phone').val();
+                // 发送ajax请求,把手机号发送过去
+                $.ajax({
+                    url: "{% url 'send_sms' %}",// http://www.xx.com/index/?k1=123&k2=567 可以反向解析,也可以直接传url
+                    type: "GET",
+                    data: {
+                        mobile_phone: mobilePhone,
+                        tpl: 'register'
+                    },
+                    dataType: "JSON", //将服务器返回的数据反序列化为字典
+                    success: function (res) {
+                        // ajax 请求发送成功之后,自动执行的函数,res就是后端返回的值
+                        if (res.status) {
+                            sendSmsRemind();
+                        } else {
+                            // console.log(res);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next().text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+        /* 倒计时 */
+        function sendSmsRemind() {
+            var $smsBtn = $('#btnSms');
+            $smsBtn.prop('disabled', true); //禁用
+
+            var time = 60;
+            var remind = setInterval(function () {
+                $smsBtn.val(time+'秒重新发送');
+                time = time -1;
+                if (time<1) {
+                    clearInterval(remind);
+                    $smsBtn.val('点击获取验证码').prop('disabled', false);
+                }
+
+            },1000)
+        }
+    </script>
 {% endblock %}
