@@ -125,9 +125,9 @@ TENCENT_SMS_APP_SIGN = "柯梦的个人平台"
 # 腾讯云短信平台签名
 TENCENT_SMS_APP_TEMPLATE = {
     'register': 621218,
-    'login': 607831,
+    'login': 607842,
 }
 try:
-    from local_settings import *
+    from tracer.local_settings import *
 except ImportError:
     pass

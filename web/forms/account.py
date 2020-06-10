@@ -107,9 +107,11 @@ class SendSmsForm(forms.Form):
 
     def clean_mobile_phone(self):
         """验证钩子"""
-        mobile_phone = self.cleaned_data['mobile_phone']
+        mobile_phone = self.cleaned_data.get('mobile_phone')
+
         # 为了判断使用的是哪个模板，需要前端将tpl传过来
         tpl = self.request.GET.get('tpl')
+        print(mobile_phone,tpl)
         template_id = settings.TENCENT_SMS_APP_TEMPLATE.get(tpl)
         if not template_id:
             raise ValidationError('短信模板错误')
@@ -143,6 +145,7 @@ class LoginSMSForm(BootStrapForm, forms.Form):
     def clean_mobile_phone(self):
         mobile_phone = self.cleaned_data['mobile_phone']
         # exists = models.UserInfo.objects.filter(mobile_phone=mobile_phone).exists()
+        # 省去重复查询的操作，user_object 返回给views
         user_object = models.UserInfo.objects.filter(mobile_phone=mobile_phone).first()
         if not user_object:
             raise ValidationError('手机号不存在')

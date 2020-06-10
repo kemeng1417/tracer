@@ -55,8 +55,9 @@
         /* 点击获取验证码的按钮绑定事件*/
         function bindClickBtnSms() {
             $('#btnSms').click(function () {
+                // 先清空错误的信息提示
                 $(".error-msg").empty();
-                //获取用户输入的手机号
+                //获取用户输入的手机号 使用django的modelform会自动在每个字段的名称前面加上id_
                 var mobilePhone = $('#id_mobile_phone').val();
                 // 发送ajax请求,把手机号发送过去
                 $.ajax({
@@ -64,7 +65,7 @@
                     type: "GET",
                     data: {
                         mobile_phone: mobilePhone,
-                        tpl: 'register'
+                        tpl: 'register',
                     },
                     dataType: "JSON", //将服务器返回的数据反序列化为字典
                     success: function (res) {
@@ -72,7 +73,7 @@
                         if (res.status) {
                             sendSmsRemind();
                         } else {
-                            // console.log(res);
+                            // console.log(res);获取到所有的错误form.errors, 里面包含错误的字段和错误的信息
                             $.each(res.error, function (key, value) {
                                 $("#id_" + key).next().text(value[0]);
                             })
@@ -96,6 +97,7 @@
                     dataType: "JSON",
                     success: function (res) {
                         if (res.status) {
+                            //重定向到href的地址
                             location.href = res.data;
                         } else {
                             // console.log(res);
@@ -111,7 +113,7 @@
         /* 倒计时 */
         function sendSmsRemind() {
             var $smsBtn = $('#btnSms');
-            $smsBtn.prop('disabled', true); //禁用
+            $smsBtn.prop('disabled', true); //禁用 prop添加属性
 
             var time = 60;
             var remind = setInterval(function () {
