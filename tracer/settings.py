@@ -128,6 +128,6 @@ TENCENT_SMS_APP_TEMPLATE = {
     'login': 607831,
 }
 try:
-    from .local_settings import *
+    from local_settings import *
 except ImportError:
     pass

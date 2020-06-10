@@ -61,6 +61,7 @@ class RegisterModelForm(BootStrapForm, forms.ModelForm):
 
     # 按字段顺序校验
     def clean_re_password(self):
+        # 此处获取到的是MD5加密以后的password，使用get获取避免出错
         password = self.cleaned_data.get('password')
         re_password = md5(self.cleaned_data['re_password'])
         if password != re_password:
@@ -76,15 +77,19 @@ class RegisterModelForm(BootStrapForm, forms.ModelForm):
 
     def clean_code(self):
         code = self.cleaned_data['code']
-        mobile_phone = self.cleaned_data['mobile_phone']
+        # mobile_phone = self.cleaned_data['mobile_phone']
         mobile_phone = self.cleaned_data.get('mobile_phone')
+        # 先判断是否填写了手机号，如果没有返回code
         if not mobile_phone:
             return code
+        # 调用django-redis获取redis里按手机号存储的键值对，get
         conn = get_redis_connection()
         redis_code = conn.get(mobile_phone)
         if not redis_code:
             raise ValidationError('验证码失效或未发送,请重新发送')
+        # 从redis中获取的都是编码后的字符串，需要解码
         redis_str_code = redis_code.decode('utf-8')
+        # 去除空格后进行比较
         if code.strip() != redis_str_code:
             raise ValidationError('验证码错误,请重新输入')
         return code
@@ -103,11 +108,13 @@ class SendSmsForm(forms.Form):
     def clean_mobile_phone(self):
         """验证钩子"""
         mobile_phone = self.cleaned_data['mobile_phone']
+        # 为了判断使用的是哪个模板，需要前端将tpl传过来
         tpl = self.request.GET.get('tpl')
         template_id = settings.TENCENT_SMS_APP_TEMPLATE.get(tpl)
         if not template_id:
             raise ValidationError('短信模板错误')
         exists = models.UserInfo.objects.filter(mobile_phone=mobile_phone).exists()
+        # 判断是注册还是登陆操作
         if tpl == 'login':
             if not exists:
                 raise ValidationError('手机号不存在,请先注册')
@@ -120,7 +127,7 @@ class SendSmsForm(forms.Form):
         sms = send_sms_single(mobile_phone, template_id, [code, ])
         if sms['result'] != 0:
             raise ValidationError('短信发送失败,{}'.format(sms['errmsg']))
-        # 验证码写入redis
+        # 验证码写入redis，设置超时时间为60s
         conn = get_redis_connection()
         conn.set(mobile_phone, code, ex=60)
 
@@ -128,6 +135,7 @@ class SendSmsForm(forms.Form):
 
 
 class LoginSMSForm(BootStrapForm, forms.Form):
+    """登陆验证码钩子"""
     mobile_phone = forms.CharField(label='手机号', validators=[
         RegexValidator(r'^1[3|4|5|6|7|8|9]\d{9}$', '手机格式错误'), ])
     code = forms.CharField(label='验证码', widget=forms.TextInput())
@@ -156,6 +164,7 @@ class LoginSMSForm(BootStrapForm, forms.Form):
         if code.strip() != redis_str_code:
             raise ValidationError('验证码错误,请重新输入')
         return code
+
 
 class LoginForm(BootStrapForm,forms.Form):
     username = forms.CharField(label='用户名')

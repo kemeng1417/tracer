@@ -22,7 +22,7 @@
                             </div>
                             <div class="col-md-5">
 {#                                <img src="" alt="">#}
-                                <img src="{% url 'img_code' %}" alt="">
+                                <img src="{% url 'img_code' %}" id="imageCode" title="点击更换验证码" alt="">
                             </div>
                         </div>
 
@@ -46,4 +46,10 @@
 
 {% endblock %}
 {% block js %}
+    <script>
+        $('#imageCode').click(function () {
+            var oldSrc = $(this).attr('src');
+            $(this).attr('src',oldSrc+'?');
+        })
+    </script>
 {% endblock %}
