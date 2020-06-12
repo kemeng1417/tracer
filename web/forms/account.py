@@ -111,7 +111,7 @@ class SendSmsForm(forms.Form):
 
         # 为了判断使用的是哪个模板，需要前端将tpl传过来
         tpl = self.request.GET.get('tpl')
-        print(mobile_phone,tpl)
+        print(mobile_phone, tpl)
         template_id = settings.TENCENT_SMS_APP_TEMPLATE.get(tpl)
         if not template_id:
             raise ValidationError('短信模板错误')
@@ -160,7 +160,7 @@ class LoginSMSForm(BootStrapForm, forms.Form):
             return code
 
         conn = get_redis_connection()
-        redis_code = conn.get(user_object.mobile_phone,)
+        redis_code = conn.get(user_object.mobile_phone, )
         if not redis_code:
             raise ValidationError('验证码失效或未发送,请重新发送')
         redis_str_code = redis_code.decode('utf-8')
@@ -169,7 +169,29 @@ class LoginSMSForm(BootStrapForm, forms.Form):
         return code
 
 
-class LoginForm(BootStrapForm,forms.Form):
-    username = forms.CharField(label='用户名')
-    password = forms.CharField(label='密码', widget=forms.PasswordInput())
+class LoginForm(BootStrapForm, forms.Form):
+    username = forms.CharField(label='邮箱或手机号')
+    password = forms.CharField(label='密码', widget=forms.PasswordInput(render_value=True))
     code = forms.CharField(label='图片验证码')
+
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+
+    def clean_password(self):
+        password = self.cleaned_data['password']
+        return md5(password)
+
+    def clean_code(self):
+        """钩子 图片验证码是否正确"""
+        # 读取用户输入的验证码
+        code = self.cleaned_data['code']
+        # 在session中获取自己的验证码
+        session_code = self.request.session.get('image_code')
+        if not session_code:
+            raise ValidationError('验证码已过期，请重新获取')
+
+        if not code.strip().upper() == session_code:
+            raise ValidationError('验证码输入错误')
+
+        return code

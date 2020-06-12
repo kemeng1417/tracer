@@ -4,7 +4,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 def check_code(width=120, height=30, char_length=5, font_file='Monaco.ttf', font_size=28):
     code = []
+    # 创建画布，选择模式，尺寸和颜色
     img = Image.new(mode='RGB', size=(width, height), color=(255, 255, 255))
+    # 创建画笔
     draw = ImageDraw.Draw(img, mode='RGB')
 
     def rndChar():
@@ -12,6 +14,7 @@ def check_code(width=120, height=30, char_length=5, font_file='Monaco.ttf', font
         生成随机字母
         :return:
         """
+        # 转换成Ascii码为ord
         return chr(random.randint(65, 90))
 
     def rndColor():
@@ -50,6 +53,7 @@ def check_code(width=120, height=30, char_length=5, font_file='Monaco.ttf', font
         draw.line((x1, y1, x2, y2), fill=rndColor())
 
     img = img.filter(ImageFilter.EDGE_ENHANCE_MORE)
+    # 返回图和验证码的字符串
     return img, ''.join(code)
 
 

@@ -18,7 +18,7 @@
                         <div class="clearfix">
                             <div class="col-md-7" style="padding-left: 0">
                                 {{ field }}
-                                <span class="error-msg">{{ field.errors.o }}</span>
+                                <span class="error-msg">{{ field.errors.0}}</span>
                             </div>
                             <div class="col-md-5">
 {#                                <img src="" alt="">#}
@@ -31,10 +31,15 @@
                     <div class="form-group">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
-                        <span class="error-msg">{{ field.errors.o }}</span>
+                        <span class="error-msg">{{ field.errors.0 }}</span>
                     </div>
                 {% endif %}
             {% endfor %}
+        <div style="float: right;">
+            <div>
+                <a href="{% url 'login_sms' %}">使用短信登录？</a>
+            </div>
+        </div>
             <div class="row">
                 <div class="col-md-3">
                     <input type="submit" class="btn btn-primary" id="btnSubmit" value="登录"/>
@@ -49,6 +54,7 @@
     <script>
         $('#imageCode').click(function () {
             var oldSrc = $(this).attr('src');
+            // 通过加问号，相当于重新请求了一下页面
             $(this).attr('src',oldSrc+'?');
         })
     </script>

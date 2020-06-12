@@ -34,6 +34,11 @@
                     </div>
                 {% endif %}
             {% endfor %}
+            <div style="float: right;">
+                <div>
+                    <a href="{% url 'login' %}">使用邮箱手机登录？</a>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-3">
                     <input type="button" class="btn btn-primary" id="btnSubmit" value="登录"/>

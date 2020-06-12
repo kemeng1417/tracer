@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'web.middleware.auth.AuthMiddleware',
 ]
 
 ROOT_URLCONF = 'tracer.urls'
@@ -118,6 +119,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = [os.path.join(BASE_DIR,'static'),]
 # 腾讯云短信平台appid和key
 TENCENT_SMS_APP_ID = 0
 TENCENT_SMS_APP_KEY = '1111'
