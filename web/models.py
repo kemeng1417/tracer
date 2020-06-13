@@ -27,16 +27,15 @@ class PricePolicy(models.Model):
 
 class Transaction(models.Model):
     """用户交易表"""
-    status_choices = ((1, '已支付'), (0, '待支付'))
+    status_choices = ((2, '已支付'), (1, '待支付'))
     status = models.IntegerField(choices=status_choices, verbose_name='支付状态')
     user = models.ForeignKey(to='UserInfo', verbose_name='用户')
-    prices_policy = models.ForeignKey(to='PricePolicy', verbose_name='价格策略')
+    price_policy = models.ForeignKey(to='PricePolicy', verbose_name='价格策略')
     count = models.IntegerField(verbose_name='数量(年)', help_text='0表示无限期')
     price = models.IntegerField(verbose_name='实际支付')
     start_time = models.DateTimeField(verbose_name='开始时间', null=True, blank=True)
     end_time = models.DateTimeField(verbose_name='结束时间', null=True, blank=True)
     create_datetime = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
-    number = models.IntegerField(verbose_name='数量')
     order = models.CharField(max_length=64, unique=True, verbose_name='订单号')
 
 

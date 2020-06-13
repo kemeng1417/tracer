@@ -1,6 +1,8 @@
 """
 用户账户相关功能:注册 短信 登录 注销
 """
+import datetime
+import uuid
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse
 from web.forms.account import RegisterModelForm, SendSmsForm, LoginSMSForm, LoginForm
@@ -15,7 +17,18 @@ def register(request):
     form = RegisterModelForm(data=request.POST)
     if form.is_valid():
         # 验证通过,密码保存为密文
-        form.save()
+        instance = form.save()
+        # 创建交易记录
+        policy_object = models.PricePolicy.objects.filter(category=1, title='个人免费版').first()
+        models.Transaction.objects.create(
+            status=2,
+            user=instance,
+            prices_policy=policy_object,
+            count=0,
+            price=0,
+            start_time=datetime.datetime.now(),
+            order = str(uuid.uuid4())
+        )
         # instance = models.UserInfo.objects.create(**form.cleaned_data),如果这么写需要移除没有用的字段
         return JsonResponse({'status': True, 'data': '/login/'})
 

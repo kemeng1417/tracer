@@ -119,7 +119,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'static'),]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), ]
 # 腾讯云短信平台appid和key
 TENCENT_SMS_APP_ID = 0
 TENCENT_SMS_APP_KEY = '1111'
@@ -129,6 +129,26 @@ TENCENT_SMS_APP_TEMPLATE = {
     'register': 621218,
     'login': 607842,
 }
+
+# 访问白名单
+# WHITE_LIST = [
+#     r'^/login/$',
+#     r'^/register/$',
+#     r'^/index/$',
+#     r'^/img/code/$',
+#     r'^/send/sms/$',
+#     r'^/login/sms$',
+#     r'^/logout/$',
+# ]
+
+WHITE_LIST = [
+    '/login/',
+    '/register/',
+    '/index/',
+    '/img/code/',
+    '/send/sms/',
+    '/login/sms/',
+]
 try:
     from tracer.local_settings import *
 except ImportError:
