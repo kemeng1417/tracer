@@ -111,7 +111,6 @@ class SendSmsForm(forms.Form):
 
         # 为了判断使用的是哪个模板，需要前端将tpl传过来
         tpl = self.request.GET.get('tpl')
-        print(mobile_phone, tpl)
         template_id = settings.TENCENT_SMS_APP_TEMPLATE.get(tpl)
         if not template_id:
             raise ValidationError('短信模板错误')

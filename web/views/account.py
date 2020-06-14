@@ -67,7 +67,6 @@ def login(request):
     form = LoginForm(request, request.POST)
 
     if form.is_valid():
-        print('eee')
         username = form.cleaned_data['username']
         password = form.cleaned_data['password']
         # user_object = models.UserInfo.objects.filter(username=username,password=password).first()
