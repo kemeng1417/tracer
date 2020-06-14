@@ -36,12 +36,12 @@
             justify-content: center;
             align-items: center;
             border-top-left-radius: 6px;
-            border-bottom-right-radius: 6px;
+            border-top-right-radius: 6px;
             font-size: 15px;
             text-decoration: none;
         }
 
-        .panel-body .item .info {
+        .panel-body > .item > .info {
             padding: 10px 10px;
             display: flex;
             justify-content: space-between;
@@ -56,6 +56,28 @@
 
         .panel-body .item .info .fa-star {
             font-size: 18px;
+
+        }
+
+        .color-radio label {
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .color-radio input[type="radio"] {
+            display: none;
+        }
+
+        .color-radio input[type="radio"] + .cycle {
+            display: inline-block;
+            height: 25px;
+            width: 25px;
+            border-radius: 50%;
+            border: 2px solid #dddddd;
+        }
+
+        .color-radio input[type="radio"]:checked + .cycle {
+            border: 2px solid black;
         }
 
     </style>
@@ -71,16 +93,17 @@
             <div class="panel-body">
                 {% for item in project_dict.star %}
                     <div class="item">
-                        <a href="" style="background-color: {{ item.get_color_display }}">{{ item.name }}</a>
+                        <a class="title"
+                           style="background-color: {{ item.value.get_color_display }}">{{ item.value.name }}</a>
                         <div class="info">
                             <div>
-                                <a href=" ">
+                                <a href="{% url 'project_unstar' project_type=item.type project_id=item.value.id %}">
                                     <i class="fa fa-star" aria-hidden="true" style="color: #f0ad4e"></i>
                                 </a>
-                                <span>{{ item.creator.username }}</span></div>
+                                <span>{{ item.value.creator.username }}</span></div>
                             <div>
                                 <i class="fa fa-user-o" aria-hidden="true"></i>
-                                <span>{{ item.join_count }}</span>
+                                <span>{{ item.value.join_count }}</span>
                             </div>
                         </div>
 
@@ -99,8 +122,8 @@
                            style="background-color: {{ item.get_color_display }}">{{ item.name }}</a>
                         <div class="info">
                             <div>
-                                <a href="">
-                                    <i class="fa fa-star" aria-hidden="true"></i>
+                                <a href="{% url 'project_star' project_type='my' project_id=item.id %}">
+                                    <i class="fa fa-star" aria-hidden="true" style="color: #d5d5d5"></i>
                                 </a>
                                 <span>{{ item.creator.username }}</span>
                             </div>
@@ -119,12 +142,14 @@
             <div class="panel-body">
                 {% for item in project_dict.join %}
                     <div class="item">
-                        <a href="" style="background-color: {{ item.get_color_display }}">{{ item.name }}</a>
+                        <a class="title" href=""
+                           style="background-color: {{ item.get_color_display }}">{{ item.name }}</a>
                         <div class="info">
                             <div>
-                                <a href="">
+                                <a href="{% url 'project_star' project_type='join' project_id=item.id %}">
                                     <i class="fa fa-star"
-                                       aria-hidden="true"></i><span>{{ item.creator.username }}</span>
+                                       aria-hidden="true"
+                                       style="color: #d5d5d5"></i><span>{{ item.creator.username }}</span>
                                 </a>
                             </div>
                             <div>
