@@ -69,6 +69,7 @@ class ProjectUser(models.Model):
 class Wiki(models.Model):
     title = models.CharField(max_length=32, verbose_name='标题')
     content = models.TextField(verbose_name='内容')
+    depth = models.IntegerField(verbose_name='深度', default=1)
     parent = models.ForeignKey(blank=True, null=True, to='Wiki',
                                verbose_name='父文章')
 

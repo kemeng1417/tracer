@@ -21,6 +21,15 @@
             min-height: 500px;
         }
 
+        .title-list ul {
+            padding-left: 15px;
+        }
+
+        .title-list ul a {
+            display: block;
+            padding: 5px 0;
+        }
+
         .content {
             border-left: 1px solid #dddddd;
             min-height: 600px;
@@ -43,7 +52,8 @@
 
             <div class="panel-body">
                 <div class="col-sm-3 title-list">
-                    目录
+                    <ul id="catalog">
+                    </ul>
                 </div>
                 <div class="col-sm-9 content">
                     <form method="post">
@@ -64,4 +74,42 @@
 
         </div>
     </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(function () {
+            initCatalog();
+        });
+        var url = "{% url 'wiki' project_id=request.tracer.project.id %}";
+
+        function initCatalog() {
+            $.ajax({
+                url: '{% url "wiki_catalog" project_id=request.tracer.project.id %}',
+                type: 'GET',
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        $.each(res.data, function (index, item) {
+                            var href = url + '?wiki_id=' + item.id;
+                            var li = $("<li>").attr('id', 'id_' + item.id).append($('<a>').text(item.title).attr('href', href)).append('<ul>');
+                            //values_list:item = [1,'xx',null]
+                            //values:item={id:1,title:'xx',parent_id:null}
+                            if (!item.parent_id) {
+                                // <li><a href="">dd</a></li>
+                                // 添加到catalog中
+
+                                $('#catalog').append(li);
+                            } else {
+                                $("#id_" + item.parent_id).children('ul').append(li);
+                            }
+                        })
+                    } else {
+                        alert('初始化目录失败')
+                    }
+
+                }
+            })
+        }
+    </script>
 {% endblock %}
