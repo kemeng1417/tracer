@@ -3,6 +3,7 @@ from web.views import account
 from web.views import home
 from web.views import project
 from web.views import manage
+from web.views import wiki
 
 urlpatterns = [
     url(r'^register/$', account.register, name='register'),
@@ -20,12 +21,15 @@ urlpatterns = [
 
     # 进入项目管理,可以采用include简化路由
     url(r'^manage/(?P<project_id>\d+)/', include([
-        url(r'dashboard/$', manage.dashboard, name='dashboard'),
-        url(r'issues/$', manage.issues, name='issues'),
-        url(r'statistics/$', manage.statistics, name='statistics'),
-        url(r'file/$', manage.file, name='file'),
-        url(r'wiki/$', manage.wiki, name='wiki'),
-        url(r'setting/$', manage.setting, name='setting'),
+        url(r'^dashboard/$', manage.dashboard, name='dashboard'),
+        url(r'^issues/$', manage.issues, name='issues'),
+        url(r'^statistics/$', manage.statistics, name='statistics'),
+        url(r'^file/$', manage.file, name='file'),
+
+        url(r'^wiki/$', wiki.wiki, name='wiki'),
+        url(r'^wiki/add/$', wiki.wiki_add, name='wiki_add'),
+
+        url(r'^setting/$', manage.setting, name='setting'),
 
     ],None,None)),
 ]

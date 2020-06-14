@@ -5,7 +5,8 @@
         .panel-default {
             margin-top: 10px;
         }
-        .panel-default .panel-heading{
+
+        .panel-default .panel-heading {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
@@ -35,7 +36,8 @@
                 <div class="function">
                     <a type="button" class="btn btn-success btn-xs"
                        href="{% url 'wiki_add' project_id=request.tracer.project.id %}"><i class="fa fa-plus-circle"
-                                                                                           aria-hidden="true"></i> 新建</a>
+                                                                                           aria-hidden="true"></i>
+                        新建</a>
                 </div>
             </div>
 
@@ -44,12 +46,18 @@
                     目录
                 </div>
                 <div class="col-sm-9 content">
-                    <div style="text-align: center;margin-top: 50px">
-                        <h4>《{{ request.tracer.project.name }}》wiki文档库</h4>
-                        <a href="{% url 'wiki_add' project_id=request.tracer.project.id %}"><i class="fa fa-plus-circle"
-                                                                                               aria-hidden="true"></i>
-                            新建文章</a>
-                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                <span class="error-msg">{{ field.errors.0 }}</span>
+                            </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary">提交</button>
+                    </form>
                 </div>
             </div>
 

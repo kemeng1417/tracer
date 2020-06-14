@@ -65,3 +65,14 @@ class ProjectUser(models.Model):
 
     create_datetime = models.DateTimeField(verbose_name='加入时间', auto_now_add=True)
 
+
+class Wiki(models.Model):
+    title = models.CharField(max_length=32, verbose_name='标题')
+    content = models.TextField(verbose_name='内容')
+    parent = models.ForeignKey(blank=True, null=True, to='Wiki',
+                               verbose_name='父文章')
+
+    project = models.ForeignKey(to='ProjectInfo', verbose_name='项目')
+
+    def __str__(self):
+        return self.title
