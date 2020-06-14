@@ -23,7 +23,7 @@ def register(request):
         models.Transaction.objects.create(
             status=2,
             user=instance,
-            prices_policy=policy_object,
+            price_policy=policy_object,
             count=0,
             price=0,
             start_time=datetime.datetime.now(),
