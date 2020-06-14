@@ -1,7 +1,8 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from web.forms.project import ProjectModelForm
 from django.http import JsonResponse, HttpResponse
 from web import models
+
 
 def project_list(request):
     """项目列表"""
@@ -15,22 +16,22 @@ def project_list(request):
  	        列表= 循环我创建的+我参与的，把所有星标的项目提取出来
             得到三个列表：星标，创建，参与	
         """
-        project_dict = {'star':[],'my':[],'join':[]}
+        project_dict = {'star': [], 'my': [], 'join': []}
         my_project_list = models.ProjectInfo.objects.filter(creator=request.tracer.user)
         for row in my_project_list:
             if row.star:
-                project_dict['star'].append({'value':row, 'type':'my'})
+                project_dict['star'].append({'value': row, 'type': 'my'})
             else:
                 project_dict['my'].append(row)
         join_project_list = models.ProjectUser.objects.filter(user=request.tracer.user)
         for item in join_project_list:
             if item.star:
-                project_dict['star'].append({'value':item.project, 'type':'join'})
+                project_dict['star'].append({'value': item.project, 'type': 'join'})
             else:
                 project_dict['join'].append(item.project)
 
         form = ProjectModelForm(request)
-        return render(request, 'project_list.html', {'form': form, 'project_dict':project_dict})
+        return render(request, 'project_list.html', {'form': form, 'project_dict': project_dict})
     form = ProjectModelForm(request, data=request.POST)
     if form.is_valid():
         # 验证通过:项目名、颜色、描述
