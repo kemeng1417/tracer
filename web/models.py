@@ -64,3 +64,4 @@ class ProjectUser(models.Model):
     star = models.BooleanField(default=False, verbose_name='星标')
 
     create_datetime = models.DateTimeField(verbose_name='加入时间', auto_now_add=True)
+
