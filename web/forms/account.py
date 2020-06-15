@@ -125,6 +125,7 @@ class SendSmsForm(forms.Form):
 
         # 发短信
         code = random.randrange(1000, 9999)
+        print(code)
         sms = send_sms_single(mobile_phone, template_id, [code, ])
         if sms['result'] != 0:
             raise ValidationError('短信发送失败,{}'.format(sms['errmsg']))
