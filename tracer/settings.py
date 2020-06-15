@@ -122,14 +122,20 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), ]
 # 腾讯云短信平台appid和key
 TENCENT_SMS_APP_ID = 0
-TENCENT_SMS_APP_KEY = '1111'
+TENCENT_SMS_APP_KEY = '1111111111111'
 TENCENT_SMS_APP_SIGN = "柯梦的个人平台"
+
+
 # 腾讯云短信平台签名
 TENCENT_SMS_APP_TEMPLATE = {
     'register': 621218,
     'login': 607842,
 }
 
+
+# 腾讯cos的id和key
+TENCENT_SECRET_ID = 'cos的id'  # 替换为用户的 secretId
+TENCENT_SECRET_KEY = 'cos的key'
 # 访问白名单
 # WHITE_LIST = [
 #     r'^/login/$',
