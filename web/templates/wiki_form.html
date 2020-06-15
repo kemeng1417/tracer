@@ -94,7 +94,8 @@
 {% block js %}
     <script src="{% static 'plugin/editor-md/editormd.min.js' %}"></script>
     <script>
-        var url = "{% url 'wiki' project_id=request.tracer.project.id %}";
+        var WIKI_DETAIL_URL = "{% url 'wiki' project_id=request.tracer.project.id %}";
+        var WIKI_UPLOAD_URL = "{% url 'wiki_upload' project_id=request.tracer.project.id %}";
         $(function () {
             initCatalog();
             initEditorMd();
@@ -108,7 +109,8 @@
                 height:500,
                 path:"{% static 'plugin/editor-md/lib/' %}",
                 imageUpload:true,
-                imageFormats:['jpg','']
+                imageFormats:['jpg','jpeg','png','gif'],
+                imageUploadURL:WIKI_UPLOAD_URL,
             })
         }
 
@@ -120,7 +122,7 @@
                 success: function (res) {
                     if (res.status) {
                         $.each(res.data, function (index, item) {
-                            var href = url + '?wiki_id=' + item.id;
+                            var href = WIKI_DETAIL_URL + '?wiki_id=' + item.id;
                             var li = $("<li>").attr('id', 'id_' + item.id).append($('<a>').text(item.title).attr('href', href)).append('<ul>');
                             //values_list:item = [1,'xx',null]
                             //values:item={id:1,title:'xx',parent_id:null}
