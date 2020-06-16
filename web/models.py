@@ -80,3 +80,17 @@ class Wiki(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class FileRepository(models.Model):
+    """ 文件库 """
+    type_choices = ((1,'文件'),(2,'文件夹'))
+    project = models.ForeignKey('ProjectInfo', verbose_name='项目')
+    name = models.CharField(verbose_name='文件名', max_length=128, help_text='文件名/文件夹名')
+    file_type = models.SmallIntegerField(choices=type_choices)
+    file_size = models.IntegerField(verbose_name='文件大小', null=True, blank=True)
+    file_path = models.CharField(verbose_name='文件路径', max_length=255,null=True, blank=True)
+    parent = models.ForeignKey(to='self',verbose_name='父目录',related_name='child', null=True, blank=True)
+    update_user = models.ForeignKey('UserInfo', verbose_name='最新更新者')
+    update_datetime = models.DateTimeField(verbose_name='更新时间', auto_now=True)
+    key = models.CharField(verbose_name='文件存储在cos中的KEY', max_length=128, null=True, blank=True)
