@@ -90,4 +90,12 @@ def file_delete(request, project_id):
                 total_size += child.file_size
                 key_list.append({'Key': child.key})
     # cos 批量删除文件
-    delete_file_list(request.tracer.project.bucket, request.tracer.project.region, key_list)
+    if key_list:
+        delete_file_list(request.tracer.project.bucket, request.tracer.project.region, key_list)
+
+    # 归还容量
+    if total_size:
+        request.tracer.project.use_space -= total_size
+        request.tracer.project.save()
+    # 删除数据库中的文件
+    delete_object.delete()
