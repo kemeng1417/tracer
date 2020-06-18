@@ -69,7 +69,9 @@
                                     class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
                         {% endif %}
 
-                            <a href="">删除</a>
+                            <a href="" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#alertModal"
+                               data-whatever="删除" data-fid="{{ item.id }}"><i class="fa fa-trash"
+                                                                              aria-hidden="true"></i></a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -110,14 +112,30 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">×</span></button>
+                <h4>是否确定删除？</h4>
+                <p style="padding-top: 20px;padding-bottom: 20px">文件夹中包含的所有文件都会被删除</p>
+                <p style="text-align: right">
+                    <a class="btn btn-danger" data-dismiss="modal" aria-label="Close">取 消</a>
+                    <button id="btnDelete" type="button" class="btn btn-default">确 定</button>
+                </p>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}
     <script>
         var FOLDER_URL = "{% url 'file' project_id=request.tracer.project.id %}";
+        var FILE_DELETE_URL = "{% url 'file_delete' project_id=request.tracer.project.id %}";
         $(function () {
             initAddModal();
             bindModelSubmit();
+            bindDeleteSubmit();
 
         });
 
@@ -146,6 +164,12 @@
                 // 编辑
 
             })
+
+            $('#alertModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);// Button that triggered the modal
+                var fid = button.data('fid'); // Extract info from data-* attributes
+                $('#btnDelete').attr('fid', fid)
+            })
         }
 
         function bindModelSubmit() {
@@ -169,5 +193,22 @@
                 )
             })
         }
+
+        function bindDeleteSubmit() {
+            $('#btnDelete').click(function () {
+                // 获取要删除的id
+                $.ajax({
+                    url: FILE_DELETE_URL,
+                    type: 'GET',
+                    data: {fid: $(this).attr('fid')},
+                    success:function (res) {
+                        if (res.status){
+                            location.href = location.href
+                        }
+                    }
+                })
+            })
+        }
+
     </script>
 {% endblock %}
