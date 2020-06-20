@@ -29,6 +29,13 @@
             left: -2px;
             overflow: hidden;
         }
+
+        .upload-progress {
+            position: fixed;
+            right: 2px;
+            bottom: 2px;
+            width: 400px;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -146,6 +153,39 @@
             </div>
         </div>
     </div>
+
+    <div id="uploadProgress" class="upload-progress hide">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <i class="fa fa-cloud-upload" aria-hidden="true"></i> 上传进度
+            </div>
+
+            <table class="table">
+                <tbody id="progressList">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="hide">
+        <table id="progressTemplate">
+            <tr>
+                <td>
+                    <div class="name"></div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar"
+                             aria-valuenow="0"
+                             aria-valuemin="0"
+                             aria-valuemax="100" style="width: 0%;">
+                            0%
+                        </div>
+                    </div>
+                    <div class="progress-error"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -155,28 +195,7 @@
         var FILE_DELETE_URL = "{% url 'file_delete' project_id=request.tracer.project.id %}";
         var COS_CREDENTIAL = "{% url 'cos_credential' project_id=request.tracer.project.id %}";
         // 临时密钥
-        var COS_OBJECT = new COS({
-            // 必选参数
-            getAuthorization: function (options, callback) {
-                // 向django后台发送请求，获取临时凭证
-                // $.ajax({type:get})
-                $.get(COS_CREDENTIAL, {
-                    // 可以从options取需要的参数
-                }, function (data) {
-                    var credentials = data && data.credentials;
-                    if (!data || !credentials) return console.error('credentials invalid');
-                    callback({
-                        TmpSecretId: credentials.tmpSecretId,
-                        TmpSecretKey: credentials.tmpSecretKey,
-                        XCosSecurityToken: credentials.sessionToken,
-                        // 建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
-                        StartTime: data.startTime, // 时间戳，单位秒，如：1580000000
-                        ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000900
-                    });
 
-                });
-            }
-        });
 
         $(function () {
             initAddModal();
@@ -190,22 +209,67 @@
             // 获取临时凭证（获取一次凭证5分钟）
 
             $('#uploadFile').change(function () {
+                $('#progressList').empty();
                 var fileList = $(this)[0].files;
+                // 获取本次要上传的每个文件 名称&大小
+                var checkFileList = [];
+                $.each(fileList, function (index, fileObject) {
+                    // 上传文件(异步)
+                    checkFileList.push({'name': fileObject.name, 'size': fileObject.size});
+                });
+                // 将数据发送到django后台，django后天进行容量的校验，如果没有问题返回临时凭证，否则返回错误信息
+                var cos_credential = new COS({
+
+                    // 必选参数
+                    getAuthorization: function (options, callback) {
+                        // 向django后台发送请求，获取临时凭证
+                        // $.ajax({type:get})
+                        $.post(COS_CREDENTIAL, JSON.stringify(checkFileList), function (res) {
+                            if (res.status) {
+                                var credentials = res.data && res.data.credentials;
+                                if (!res.data || !credentials) return console.error('credentials invalid');
+                                callback({
+                                    TmpSecretId: credentials.tmpSecretId,
+                                    TmpSecretKey: credentials.tmpSecretKey,
+                                    XCosSecurityToken: credentials.sessionToken,
+                                    // 建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
+                                    StartTime: res.data.startTime, // 时间戳，单位秒，如：1580000000
+                                    ExpiredTime: res.data.expiredTime, // 时间戳，单位秒，如：1580000900
+                                });
+                                $('#uploadProgress').removeClass('hide')
+                            } else {
+                                alert(res.error);
+                            }
+
+                        });
+                    }
+                });
                 $.each(fileList, function (index, fileObject) {
                     // 上传文件(异步)
                     var fileName = fileObject.name;
-                    COS_OBJECT.putObject({
+                    var fileSize = fileObject.size;
+                    var key = (new Date()).getTime() + "_" + fileName;
+                    var tr = $('#progressTemplate').find('tr').clone();
+
+                    tr.find('.name').text(fileName);
+                    $('#progressList').append(tr);
+
+                    cos_credential.putObject({
                         Bucket: '{{ request.tracer.project.bucket }}', /* 必须 */
                         Region: '{{ request.tracer.project.region }}',     /* 存储桶所在地域，必须字段 */
-                        Key: fileName,              /* 必须 */
+                        Key: key,        /* 必须 */
                         Body: fileObject, // 上传文件对象
                         onProgress: function (progressData) {
-                            console.log("文件上传进度--->", fileName, JSON.stringify(progressData));
+                            var percent = progressData.percent * 100 + '%';
+                            tr.find('.progress-bar').text(percent);
+                            tr.find('.progress-bar').css('width', percent);
                         }
                     }, function (err, data) {
                         console.log(err || data);
                     });
+
                 })
+
             });
         }
 

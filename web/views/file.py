@@ -1,9 +1,12 @@
+import json
+
 from django.shortcuts import render, redirect
 from web.forms.file import FolderModelForm
 from django.forms import model_to_dict
 from django.http import JsonResponse
 from web import models
-from utils.cos import delete_file, delete_file_list,credential
+from utils.cos import delete_file, delete_file_list, credential
+from django.views.decorators.csrf import csrf_exempt
 
 
 # http://127.0.0.1:8000/manage/1/file/?folder=1
@@ -99,9 +102,25 @@ def file_delete(request, project_id):
         request.tracer.project.save()
     # 删除数据库中的文件
     delete_object.delete()
+    return JsonResponse({'status':True})
 
 
+@csrf_exempt
 def cos_credential(request, project_id):
     """ 获取cos上传临时凭证 """
+    # 数据库中存的文件大小为m，获取的为字节大小
+    per_file_limit = request.tracer.price_policy.per_file_size * 1024 * 1024
+    project_space = request.tracer.price_policy.project_space * 1024 * 1024 * 1024
+    project_use_space = request.tracer.project.use_space
+    total_size = 0
+    file_list = json.loads(request.body.decode('utf-8'))
+    for item in file_list:
+        if item['size'] > per_file_limit:
+            msg = '单文件大小超过最大限制{}，文件名：{}，请升级套餐！'.format(per_file_limit, item['name'])
+            return JsonResponse({'status': False, 'error': msg})
+        total_size += item['size']
+    if project_use_space * 1024 * 1024 * 1024 + total_size > project_space:
+        msg = '文件空间不足，请升级套餐！'
+        return JsonResponse({'status': False, 'error': msg})
     data_dict = credential(request.tracer.project.bucket, request.tracer.project.region)
-    return JsonResponse(data_dict)
+    return JsonResponse({'status': True, 'data': data_dict})
