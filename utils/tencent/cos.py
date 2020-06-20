@@ -88,6 +88,25 @@ def delete_file(bucket, region, key):
     )
 
 
+def check_file(bucket, region, key):
+    """校验文件是否合法"""
+    secret_id = settings.TENCENT_SECRET_ID  # 替换为用户的 secretId
+    secret_key = settings.TENCENT_SECRET_KEY  # 替换为用户的 secretKey
+    region = region  # 替换为用户的 Region
+
+    config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
+
+    client = CosS3Client(config)
+
+    # 上传文件
+
+    data = client.head_object(
+        Bucket=bucket,
+        Key=key,  # 上传到桶之后的文件名
+    )
+    return data
+
+
 def delete_file_list(bucket, region, key_list):
     """
     批量删除文件
@@ -155,4 +174,3 @@ def credential(bucket, region, ):
     # 字典中包含了临时凭证
     result_dict = sts.get_credential()
     return result_dict
-

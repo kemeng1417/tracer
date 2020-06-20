@@ -73,7 +73,7 @@
                     <th>操作</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="newList">
                 {% for item in file_object_list %}
                     <tr>
                         <td>
@@ -186,6 +186,29 @@
             </tr>
         </table>
     </div>
+    <div class="hide">
+        <table id="rowTpl">
+            <tr>
+                <td>
+                    <i class="fa fa-file" aria-hidden="true"></i>
+                    <span class="name"></span>
+                </td>
+                <td class="file_size"></td>
+                <td class="username"></td>
+                <td class="datetime"></td>
+                <td>
+
+                    <a class="btn btn-default btn-xs download">
+                        <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                    </a>
+
+                    <a class="btn btn-danger btn-xs delete" data-toggle="modal" data-target="#alertModal">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
 {% endblock %}
 
 {% block js %}
@@ -194,6 +217,8 @@
         var FOLDER_URL = "{% url 'file' project_id=request.tracer.project.id %}";
         var FILE_DELETE_URL = "{% url 'file_delete' project_id=request.tracer.project.id %}";
         var COS_CREDENTIAL = "{% url 'cos_credential' project_id=request.tracer.project.id %}";
+        var FILE_POST = "{% url 'file_post' project_id=request.tracer.project.id %}";
+        var CURRENT_FOLDER_ID = "{{ folder_object.id }}";
         // 临时密钥
 
 
@@ -265,6 +290,31 @@
                             tr.find('.progress-bar').css('width', percent);
                         }
                     }, function (err, data) {
+                        if (data && data.statusCode === 200) {
+                            // 上传成功，需要将本次上传的文件提交到后台，并写入数据库
+                            // 当前文件上传成功
+                            $.post(FILE_POST, {
+                                name: fileName,
+                                key: key,
+                                file_size: fileSize,
+                                parent: CURRENT_FOLDER_ID,
+                                etag: data.ETag,
+                                file_path: data.location,
+                            }, function (res) {
+                                // 在数据中写入成功，在页面上展示出来
+                                var newTr = $('#rowTpl').find('tr').clone();
+                                newTr.find('.name').text(res.data.name);
+                                newTr.find('.file_size').text(res.data.file_size);
+                                newTr.find('.username').text(res.data.username);
+                                newTr.find('.datetime').text(res.data.datetime);
+                                newTr.find('.delete').attr('data-fid',res.data.id);
+                                $('#newList').append(newTr);
+                                // 自己的进度条删除
+                                tr.remove();
+                            })
+                        } else {
+                            tr.find('.progress-error').text('上传失败')
+                        }
                         console.log(err || data);
                     });
 

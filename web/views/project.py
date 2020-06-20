@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from web.forms.project import ProjectModelForm
 from django.http import JsonResponse, HttpResponse
 from web import models
-from utils.cos import create_bucket
+from utils.tencent.cos import create_bucket
 import time
 
 

@@ -1,11 +1,11 @@
 import json
 
-from django.shortcuts import render, redirect
-from web.forms.file import FolderModelForm
+from django.shortcuts import render
+from web.forms.file import FolderModelForm, FileModelForm
 from django.forms import model_to_dict
 from django.http import JsonResponse
 from web import models
-from utils.cos import delete_file, delete_file_list, credential
+from utils.tencent.cos import delete_file, delete_file_list, credential
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -37,6 +37,7 @@ def file(request, project_id):
             'form': form,
             'file_object_list': file_object_list,
             'breadcrumb_list': breadcrumb_list,
+            'folder_object': parent_object,
         }
         return render(request, 'file.html', context)
 
@@ -102,7 +103,7 @@ def file_delete(request, project_id):
         request.tracer.project.save()
     # 删除数据库中的文件
     delete_object.delete()
-    return JsonResponse({'status':True})
+    return JsonResponse({'status': True})
 
 
 @csrf_exempt
@@ -119,8 +120,48 @@ def cos_credential(request, project_id):
             msg = '单文件大小超过最大限制{}，文件名：{}，请升级套餐！'.format(per_file_limit, item['name'])
             return JsonResponse({'status': False, 'error': msg})
         total_size += item['size']
-    if project_use_space * 1024 * 1024 * 1024 + total_size > project_space:
+    if project_use_space + total_size > project_space:
         msg = '文件空间不足，请升级套餐！'
         return JsonResponse({'status': False, 'error': msg})
     data_dict = credential(request.tracer.project.bucket, request.tracer.project.region)
     return JsonResponse({'status': True, 'data': data_dict})
+
+
+@csrf_exempt
+def file_post(request, project_id):
+    """ 已上传成功的文件写入到数据库 """
+    """  
+        name: fileName,
+        key: key,
+        file_size: fileSize,
+        parent: CURRENT_FOLDER_ID,
+        etag:data.ETag,
+        file_path:data.location,
+    """
+
+    # 根据key再去cos获取文件Etag
+    # 把获取的数据写入到数据库
+    form = FileModelForm(request, data=request.POST)
+    if form.is_valid():
+        # 校验通过，写入数据库
+        # form.instance.file_type = 1
+        # form.instance.update_user = request.tracer.user
+        # form.save()
+        data_dict = form.cleaned_data
+        data_dict.pop('etag')
+        data_dict.update({'project':request.tracer.project, 'file_type':1, 'update_user':request.tracer.user})
+        instance = models.FileRepository.objects.create(**data_dict)
+
+        # 项目的已使用空间：更新
+        request.tracer.project.use_space += data_dict['file_size']
+        request.tracer.project.save()
+        result = {
+            'name':instance.name,
+            'id':instance.id,
+            'file_size':instance.file_size,
+            'username':instance.update_user.username,
+            'datetime':instance.update_datetime.strftime('%Y{}%m{}%d{} %H:%M').format('年','月','日'),
+            # 'file_type':instance.get_file_type_display(),
+        }
+        return JsonResponse({'status':True, 'data':result})
+    return JsonResponse({'status':False, 'data':'文件错误'})

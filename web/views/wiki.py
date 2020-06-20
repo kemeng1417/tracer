@@ -1,10 +1,10 @@
 from django.shortcuts import render, reverse, redirect
 from web.forms.wiki import WikiModelForm
 from web import models
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from utils.encrypt import uid
-from utils.cos import upload_file
+from utils.tencent.cos import upload_file
 
 
 def wiki(request, project_id):
