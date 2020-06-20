@@ -3,7 +3,7 @@ from web.forms.file import FolderModelForm
 from django.forms import model_to_dict
 from django.http import JsonResponse
 from web import models
-from utils.cos import delete_file, delete_file_list
+from utils.cos import delete_file, delete_file_list,credential
 
 
 # http://127.0.0.1:8000/manage/1/file/?folder=1
@@ -99,3 +99,9 @@ def file_delete(request, project_id):
         request.tracer.project.save()
     # 删除数据库中的文件
     delete_object.delete()
+
+
+def cos_credential(request, project_id):
+    """ 获取cos上传临时凭证 """
+    data_dict = credential(request.tracer.project.bucket, request.tracer.project.region)
+    return JsonResponse(data_dict)
