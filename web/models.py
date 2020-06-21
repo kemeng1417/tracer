@@ -141,7 +141,7 @@ class Issues(models.Model):
     status = models.SmallIntegerField(choices=status_choices, verbose_name='状态', default=1)
 
     assign = models.ForeignKey(verbose_name='指派', to='UserInfo', related_name='task', null=True, blank=True)
-    attention = models.ManyToManyField(verbose_name='关注者', to='UserInfo', related_name='observe', null=True, blank=True)
+    attention = models.ManyToManyField(verbose_name='关注者', to='UserInfo', related_name='observe', blank=True)
     start_date = models.DateField(verbose_name='开始时间', null=True, blank=True)
     end_date = models.DateField(verbose_name='结束时间', null=True, blank=True)
     mode_choices = (
