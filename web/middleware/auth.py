@@ -40,7 +40,7 @@ class AuthMiddleware(MiddlewareMixin):
             return redirect('login')
 
         # 登录成功后，访问后台管理时，获取当前账户拥有的额度
-        # 方式一：免费额度再交易记录中存储
+        # 方式一：免费额度在交易记录中存储
         _object = models.Transaction.objects.filter(user=user_object, status=2).order_by('-id').first()
 
         # 判断是否已过期

@@ -75,7 +75,7 @@ def wiki_edit(request, project_id, wiki_id):
         url = reverse('wiki', kwargs={'project_id': project_id})
         preview_url = '{0}?wiki_id={1}'.format(url, wiki_id)
         return redirect(preview_url)
-    return render(request, 'wiki.html', {'form': form})
+    return render(request, 'wiki_form.html', {'form': form})
 
 
 @csrf_exempt
