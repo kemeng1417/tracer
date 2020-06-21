@@ -90,11 +90,15 @@
                         {% endif %}</td>
                         <td>{{ item.update_user.username }}</td>
                         <td>{{ item.update_datetime }}</td>
-                        <td>{% if item.file_type == 2 %}
-                            <a href="" class="btn btn-info btn-xs" data-toggle="modal" data-target="#addModal"
-                               data-whatever="编辑文件夹" data-name="{{ item.name }}" data-fid="{{ item.id }}"> <i
-                                    class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                        {% endif %}
+                        <td>
+                            {% if item.file_type == 2 %}
+                                <a href="" class="btn btn-default btn-xs" data-toggle="modal" data-target="#addModal"
+                                   data-whatever="编辑文件夹" data-name="{{ item.name }}" data-fid="{{ item.id }}"> <i
+                                        class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+                            {% else %}
+                                <a href="{% url 'file_download' project_id=request.tracer.project.id file_id=item.id %}" class="btn btn-default btn-xs"> <i
+                                        class="fa fa-cloud-download" aria-hidden="true"></i></a>
+                            {% endif %}
 
                             <a href="" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#alertModal"
                                data-whatever="删除" data-fid="{{ item.id }}"><i class="fa fa-trash"
@@ -299,7 +303,7 @@
                                 file_size: fileSize,
                                 parent: CURRENT_FOLDER_ID,
                                 etag: data.ETag,
-                                file_path: data.location,
+                                file_path: data.Location,
                             }, function (res) {
                                 // 在数据中写入成功，在页面上展示出来
                                 var newTr = $('#rowTpl').find('tr').clone();
@@ -307,7 +311,8 @@
                                 newTr.find('.file_size').text(res.data.file_size);
                                 newTr.find('.username').text(res.data.username);
                                 newTr.find('.datetime').text(res.data.datetime);
-                                newTr.find('.delete').attr('data-fid',res.data.id);
+                                newTr.find('.delete').attr('data-fid', res.data.id);
+                                newTr.find('.download').attr('href', res.data.download_url);
                                 $('#newList').append(newTr);
                                 // 自己的进度条删除
                                 tr.remove();

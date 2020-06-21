@@ -1,7 +1,7 @@
 from qcloud_cos import CosConfig
 from qcloud_cos import CosS3Client
 from django.conf import settings
-
+from qcloud_cos.cos_exception import CosServiceError
 
 def create_bucket(bucket, region='ap-chengdu'):
     """
@@ -174,3 +174,50 @@ def credential(bucket, region, ):
     # 字典中包含了临时凭证
     result_dict = sts.get_credential()
     return result_dict
+
+
+def delete_bucket(bucket, region):
+    """ 删除桶 """
+    # - 删除桶中的所有文件
+    # - 删除桶中的所有碎片
+    # - 删除桶
+    secret_id = settings.TENCENT_SECRET_ID  # 替换为用户的 secretId
+    secret_key = settings.TENCENT_SECRET_KEY  # 替换为用户的 secretKey
+    region = region  # 替换为用户的 Region
+
+    config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key)
+    client = CosS3Client(config)
+    try:
+        # 查看桶中的所有文件并删除
+        while True:
+            part_objects = client.list_objects(bucket)
+            # 如有Contents没有值，说明已删除完毕
+            contents = part_objects.get('Contents')
+            if not contents:
+                break
+            # 批量删除
+            objects = {
+                'Quiet': 'true',
+                'Object': [{'Key': item['Key']} for item in contents],
+            }
+            client.delete_objects(bucket, objects)
+
+            # 判断是否是截断
+            if part_objects['IsTruncated'] == 'false':
+                break
+
+        # 找到碎片并删除
+        while True:
+            part_uploads = client.list_multipart_uploads(bucket)
+            uploads = part_uploads.get('Upload')
+            if not uploads:
+                break
+            for item in uploads:
+                client.abort_multipart_upload(bucket, item['Key'], item['UploadId'])
+
+            if part_uploads['IsTruncated'] == 'false':
+                break
+
+        client.delete_bucket(bucket)
+    except CosServiceError as e:
+        pass
