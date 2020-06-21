@@ -8,7 +8,7 @@ from web.views import file
 
 urlpatterns = [
     url(r'^register/$', account.register, name='register'),
-    url(r'^login/sms$', account.login_sms, name='login_sms'),
+    url(r'^login/sms/$', account.login_sms, name='login_sms'),
     url(r'^login/$', account.login, name='login'),
     url(r'^logout/$', account.logout, name='logout'),
     url(r'^send/sms/$', account.send_sms, name='send_sms'),
