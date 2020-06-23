@@ -270,6 +270,7 @@
             initIssuesRecord();
             bindReply();
             bindCancelReplyUser();
+            bindSubmit();
         });
 
         function bindDatePicker() {
@@ -371,5 +372,31 @@
                 $(this).addClass('hide').removeAttr('parent-id').children('span').text("");
             })
         }
+
+        function bindSubmit() {
+            $('#btnSubmit').click(function () {
+                $('#commentText .error-msg').text('');
+                $.ajax({
+                    url: ISSUES_RECORD_API,
+                    data: {content: $('#content').val(), reply: $('#replyUser').attr('parent-id')},
+                    dataType: 'JSON',
+                    type: 'POST',
+                    success: function (res) {
+                        if (res.status) {
+                            createRecordNode(res.data);
+                            $('#content').val('');
+                            $('#replyUser').addClass('hide').removeAttr('parent-id').children('span').text("");
+
+                        } else {
+                            $.each(res.data, function (k, v) {
+                                $('#content').next('.error-msg').text(v[0]);
+                            })
+
+                        }
+                    }
+                })
+            })
+        }
+
     </script>
 {% endblock %}
