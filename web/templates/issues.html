@@ -1,5 +1,6 @@
 {% extends 'layout/manage.html' %}
 {% load static %}
+{% load issues %}
 {% block css %}
     <link rel="stylesheet" href="{% static 'plugin/editor-md/css/editormd.min.css' %}">
     <link rel="stylesheet" href="{% static 'plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
@@ -32,6 +33,10 @@
             background-color: #dddddd;
         }
 
+        .editormd {
+            margin-bottom: 0;
+        }
+
         .pd-0 {
             padding: 0 !important;
         }
@@ -56,24 +61,57 @@
                 </div>
                 <div>
                     <table class="table">
-                        <tbody>
-                        <tr>
+                        <tbody class="issues-list">
+                        {% for item in issues_object_list %}
+                            <tr>
+                                <td class="number">
+                                    <i class="fa fa-circle text-{{ item.priority }}"></i>
+                                    <a target="_blank"
+                                       href="">{% string_just item.id %}</a>
+                                </td>
+                                <td class="issue">
+                                    <div>
+                                        <a target="_blank"
+                                           href="">{{ item.subject }}</a>
+                                    </div>
+                                    <div class="tags">
+                                    <span class="type">
+                                        {{ item.issues_type.title }}
+                                    </span>
+                                        <span>
+                                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                                        {{ item.get_status_display }}
+                                    </span>
+                                        {% if item.assign %}
+                                            <span>
+                                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
+                                        {{ item.assign.username }}
+                                    </span>
+                                        {% endif %}
 
-                        </tr>
+                                        <span>
+                                        <i class="fa fa-user-o" aria-hidden="true"></i>
+                                        {{ item.creator.username }}
+                                    </span>
+                                        {% if item.end_date %}
+                                            <span><i class="fa fa-calendar"
+                                                     aria-hidden="true"></i> {{ item.end_date }} 截止</span>
+                                        {% endif %}
+                                        <span><i class="fa fa-clock-o"
+                                                 aria-hidden="true"></i> {{ item.last_update_datetime }} 更新</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+
                         </tbody>
                     </table>
                 </div>
                 <nav>
 
                     <ul class="pagination" style="margin-top: 0;">
-                        <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">«</span></a>
-                        </li>
-                        <li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
-                        <li><a href="#">4</a></li>
-                        <li><a href="#">5</a></li>
-                        <li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+                        {{ page_html|safe }}
                     </ul>
 
                 </nav>
@@ -101,15 +139,15 @@
                                        class="col-sm-2 control-label">{{ form.issues_type.label }}</label>
                                 <div class="col-sm-10">
                                     {{ form.issues_type }}
-                                    <span class="error-msg">{{ form.issues.errors.0 }}</span>
+                                    <div class="error-msg"></div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="{{ form.subject.id_for_label }}"
                                        class="col-sm-2 control-label">{{ form.subject.label }}</label>
                                 <div class="col-sm-10">
-                                    {{ form.subject }}
-                                    <span class="error-msg">{{ form.subject.errors.0 }}</span>
+                                    <div>{{ form.subject }}</div>
+                                    <div class="error-msg"></div>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -117,7 +155,7 @@
                                        class="col-sm-2 control-label">{{ form.module_type.label }}</label>
                                 <div class="col-sm-10">
                                     {{ form.module_type }}
-                                    <span class="error-msg">{{ form.module_type.errors.0 }}</span>
+                                    <div class="error-msg"></div>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -127,7 +165,7 @@
                                     <div id="editor">
                                         {{ form.desc }}
                                     </div>
-                                    <span class="error-msg">{{ form.desc.errors.0 }}</span>
+                                    <div class="error-msg"></div>
                                 </div>
                             </div>
                             <div class="form-group clearfix">
@@ -135,16 +173,16 @@
                                     <label for="{{ form.status.id_for_label }}"
                                            class="col-sm-4 control-label">{{ form.status.label }}</label>
                                     <div class="col-sm-8">
-                                        {{ form.status }}
-                                        <span class="error-msg">{{ form.status.errors.0 }}</span>
+                                        <div>{{ form.status }}</div>
+                                        <div class="error-msg"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6 pd-0">
                                     <label for="{{ form.priority.id_for_label }}"
                                            class="col-sm-4 control-label">{{ form.priority.label }}</label>
                                     <div class="col-sm-8">
-                                        {{ form.priority }}
-                                        <span class="error-msg">{{ form.priority.errors.0 }}</span>
+                                        <div>{{ form.priority }}</div>
+                                        <div class="error-msg"></div>
                                     </div>
                                 </div>
 
@@ -155,7 +193,7 @@
                                            class="col-sm-4 control-label">{{ form.assign.label }}</label>
                                     <div class="col-sm-8">
                                         {{ form.assign }}
-                                        <span class="error-msg">{{ form.assign.errors.0 }}</span>
+                                        <div class="error-msg"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6 pd-0">
@@ -163,7 +201,7 @@
                                            class="col-sm-4 control-label">{{ form.attention.label }}</label>
                                     <div class="col-sm-8">
                                         {{ form.attention }}
-                                        <span class="error-msg">{{ form.attention.errors.0 }}</span>
+                                        <div class="error-msg"></div>
                                     </div>
                                 </div>
 
@@ -179,9 +217,9 @@
                                             {{ form.start_date }}
                                         </div>
 
-
+                                        <div class="error-msg"></div>
                                     </div>
-                                    <span class="error-msg">{{ form.start_date.errors.0 }}</span>
+
                                 </div>
                                 <div class="col-md-6 pd-0">
                                     <label for="{{ form.end_date.id_for_label }}"
@@ -193,7 +231,7 @@
                                             {{ form.end_date }}
                                         </div>
 
-                                        <span class="error-msg">{{ form.end_date.errors.0 }}</span>
+                                        <div class="error-msg"></div>
                                     </div>
                                 </div>
 
@@ -204,8 +242,8 @@
                                     <label for="{{ form.mode.id_for_label }}"
                                            class="col-sm-4 control-label">{{ form.mode.label }}</label>
                                     <div class="col-sm-8">
-                                        {{ form.mode }}
-                                        <span class="error-msg">{{ form.mode.errors.0 }}</span>
+                                        <div>{{ form.mode }}</div>
+                                        <div class="error-msg"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6 pd-0">
@@ -213,7 +251,7 @@
                                            class="col-sm-4 control-label">{{ form.parent.label }}</label>
                                     <div class="col-sm-8">
                                         {{ form.parent }}
-                                        <span class="error-msg">{{ form.parent.errors.0 }}</span>
+                                        <div class="error-msg"></div>
                                     </div>
                                 </div>
 
@@ -224,7 +262,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
-                        <button type="button" class="btn btn-primary">添 加</button>
+                        <button id="btnAddSubmit" type="button" class="btn btn-primary">添 加</button>
                     </div>
                 </div>
             </div>
@@ -239,10 +277,11 @@
     <script src="{% static 'plugin/bootstrap-select/js/i18n/defaults-zh_CN.min.js' %}"></script>
     <script>
         var WIKI_UPLOAD_URL = "{% url 'wiki_upload' project_id=request.tracer.project.id %}";
+        var POST_ISSUES = "{% url 'issues' project_id=request.tracer.project.id %}";
         $(function () {
             bindBootStrapShowEvent();
             bindDatePicker();
-            {#bingAddSubmit();#}
+            bindAddSubmit();
         });
 
         function bindDatePicker() {
@@ -276,7 +315,26 @@
             })
         }
 
-
+        function bindAddSubmit() {
+            $('#btnAddSubmit').click(function () {
+                $('#addForm').find('.error-msg').empty();
+                $.ajax({
+                    url: POST_ISSUES,
+                    type: 'POST',
+                    dataType: 'JSON',
+                    data: $('#addForm').serialize(),
+                    success: function (res) {
+                        if (res.status) {
+                            location.href = location.href
+                        } else {
+                            $.each(res.error, function (k, v) {
+                                $('#id_' + k).parent().next('.error-msg').text(v[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
 
     </script>
 {% endblock %}

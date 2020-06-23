@@ -36,8 +36,13 @@
             min-height: 600px;
             margin-left: -1px;
         }
-        .editormd-fullscreen{
+
+        .editormd-fullscreen {
             z-index: 1001;
+        }
+
+        .editormd {
+            margin-bottom: 0;
         }
     </style>
 {% endblock %}
@@ -100,17 +105,18 @@
             initCatalog();
             initEditorMd();
         });
+
         /*
         初始化markdown编辑器（textarea转化为编辑器）
          */
         function initEditorMd() {
-            editormd('editor',{
-                placeholder:'请输入内容',
-                height:500,
-                path:"{% static 'plugin/editor-md/lib/' %}",
-                imageUpload:true,
-                imageFormats:['jpg','jpeg','png','gif'],
-                imageUploadURL:WIKI_UPLOAD_URL,
+            editormd('editor', {
+                placeholder: '请输入内容',
+                height: 500,
+                path: "{% static 'plugin/editor-md/lib/' %}",
+                imageUpload: true,
+                imageFormats: ['jpg', 'jpeg', 'png', 'gif'],
+                imageUploadURL: WIKI_UPLOAD_URL,
             })
         }
 
