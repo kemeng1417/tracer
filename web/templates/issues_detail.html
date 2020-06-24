@@ -60,14 +60,15 @@
     <div class="container-fluid clearfix" style="padding: 20px 0;">
         <div class="col-sm-7">
             <div class="panel panel-default">
-                <div class="panel-heading"><i class="fa fa-edit" aria-hidden="true"></i> 更新问题</div>
+                <div class="panel-heading edit-heading"><i class="fa fa-edit" aria-hidden="true"></i> 更新问题</div>
                 <div class="panel-body">
-                    <form id="editForm" class="form-horizontal">
+                    <form id="editForm" class="form-horizontal" method="post">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="{{ form.issues_type.id_for_label }}"
                                    class="col-sm-2 control-label">{{ form.issues_type.label }}</label>
                             <div class="col-sm-10">
+
                                 {{ form.issues_type }}
                                 <div class="error-msg"></div>
                             </div>
@@ -189,6 +190,8 @@
 
 
                     </form>
+
+
                 </div>
             </div>
         </div>
@@ -264,6 +267,8 @@
     <script>
         var WIKI_UPLOAD_URL = "{% url 'wiki_upload' project_id=request.tracer.project.id %}";
         var ISSUES_RECORD_API = "{% url 'issues_record' project_id=request.tracer.project.id issues_id=issues_object.id%}";
+        var ISSUES_CHANGE_API = "{% url 'issues_change' project_id=request.tracer.project.id issues_id=issues_object.id%}";
+        var EDITOR;
         $(function () {
             initEditorMd();
             bindDatePicker();
@@ -271,6 +276,7 @@
             bindReply();
             bindCancelReplyUser();
             bindSubmit();
+            bingChangeIssues();
         });
 
         function bindDatePicker() {
@@ -287,7 +293,7 @@
     初始化markdown编辑器（textarea转化为编辑器）
      */
         function initEditorMd() {
-            editormd('editor', {
+            EDITOR = editormd('editor', {
                 placeholder: '请输入内容',
                 height: 300,
                 path: "{% static 'plugin/editor-md/lib/' %}",
@@ -305,11 +311,8 @@
                     this.previewing();
                 },
             })
-        };
-
-        function saveDesc() {
-            alert(666)
         }
+
 
         /*问题评论初始化*/
         function initIssuesRecord() {
@@ -373,6 +376,10 @@
             })
         }
 
+
+        /*
+        点击评论
+         */
         function bindSubmit() {
             $('#btnSubmit').click(function () {
                 $('#commentText .error-msg').text('');
@@ -397,6 +404,48 @@
                 })
             })
         }
+
+        /*
+        生成操作记录
+         */
+        function bingChangeIssues() {
+            $('#editForm').find('.form-control').change(function () {
+                // 内容变更
+                if (!$(this).attr('name')) {
+
+                } else {
+                    var postDict = {name: $(this).attr('name'), value: $(this).val()};
+                    postAjaxData(postDict);
+                }
+
+            });
+        }
+
+        function saveDesc() {
+            var postDict = {name: 'desc', value: EDITOR.getValue()};
+            postAjaxData(postDict);
+        }
+
+        function postAjaxData(postDict) {
+            $('#id_' + postDict.name).parent().next('.error-msg').text('');
+            $.ajax({
+                url: ISSUES_CHANGE_API,
+                data: JSON.stringify(postDict),
+                type: 'POST',
+                header: {
+                    "Content-Type": 'application/json,charset=utf-8',
+                },
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        createRecordNode(res.data)
+                    } else {
+                        $('#id_' + postDict.name).parent().next('.error-msg').text(res.error);
+                    }
+                }
+            })
+        }
+
 
     </script>
 {% endblock %}

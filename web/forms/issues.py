@@ -17,6 +17,7 @@ class IssuesModelForm(BootStrapForm, forms.ModelForm):
                 attrs={'class': 'selectpicker', 'data-live-search': 'true', 'multiple data-actions-box': "true"}),
         }
 
+
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -48,7 +49,7 @@ class IssuesModelForm(BootStrapForm, forms.ModelForm):
         self.fields['parent'].choices = parent_list
 
 
-class IssuesReplyForm(BootStrapForm, forms.ModelForm):
+class IssuesReplyForm(forms.ModelForm):
     class Meta:
         model = models.IssuesReply
         fields = ['reply', 'content']
