@@ -1,13 +1,15 @@
 import json
-
+import datetime
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from web.forms.issues import IssuesModelForm, IssuesReplyForm
+from web.forms.issues import IssuesModelForm, IssuesReplyForm, InviteModelForm
 from django.http import JsonResponse, QueryDict
 from web import models
 from utils.pagination import Pagination
 from django.views.decorators.csrf import csrf_exempt
+from utils.encrypt import uid
 
 
 class CheckFilter(object):
@@ -118,19 +120,23 @@ def issues(request, project_id):
                                                                                                  'user__username')
 
         project_total_user.extend(project_join_user)
-        content = {'form': form,
-                   'issues_object_list': issues_object_list,
-                   'page_html': page_object.page_html(),
-                   'filter_list': [
-                       {'title': '问题类型', 'filter': CheckFilter('issues_type', issues_type_list, request)},
-                       {'title': '状态', 'filter': CheckFilter('status', models.Issues.status_choices, request)},
-                       {'title': '优先级', 'filter': CheckFilter('priority', models.Issues.priority_choices, request)},
-                       {'title': '指派者', 'filter': SelectFilter('assign', project_total_user, request)},
-                       {'title': '关注者', 'filter': SelectFilter('attention', project_total_user, request)},
 
-                   ],
+        invite_form = InviteModelForm()
+        content = {
+            'form': form,
+            'invite_form': invite_form,
+            'issues_object_list': issues_object_list,
+            'page_html': page_object.page_html(),
+            'filter_list': [
+                {'title': '问题类型', 'filter': CheckFilter('issues_type', issues_type_list, request)},
+                {'title': '状态', 'filter': CheckFilter('status', models.Issues.status_choices, request)},
+                {'title': '优先级', 'filter': CheckFilter('priority', models.Issues.priority_choices, request)},
+                {'title': '指派者', 'filter': SelectFilter('assign', project_total_user, request)},
+                {'title': '关注者', 'filter': SelectFilter('attention', project_total_user, request)},
 
-                   }
+            ],
+
+        }
         return render(request, 'issues.html', content)
 
     form = IssuesModelForm(request, data=request.POST)
@@ -314,3 +320,67 @@ def issues_change(request, project_id, issues_id):
     # 生成操作记录
 
     return JsonResponse({'status': True, 'error': 'gun'})
+
+
+def invite_url(request, project_id):
+    """ 生成邀请码 """
+    form = InviteModelForm(data=request.POST)
+    if form.is_valid():
+        """
+        1. 创建一个随机的邀请码
+        2. 验证码保存到数据库
+        3. 只有创建者才能邀请，其他成员无法创建
+        """
+        if request.tracer.user != request.tracer.project.creator:
+            form.add_error('period', '没有权限创建邀请码')
+            return JsonResponse({'status': False, 'error': form.errors})
+        random_invite_code = uid(request.tracer.user.mobile_phone)
+        form.instance.project = request.tracer.project
+        form.instance.code = random_invite_code
+        form.instance.creator = request.tracer.user
+        form.save()
+
+        # 邀请码返回前端，前端展示验证码
+        url = '{scheme}://{host}{path}'.format(
+            scheme=request.scheme,  # 访问的方法
+            host=request.get_host(),  # 返回域名和端口
+            path=reverse('invite_join', kwargs={'code': random_invite_code})
+        )
+        return JsonResponse({'status': True, 'data': url})
+    return JsonResponse({'status': False, 'error': form.errors})
+
+
+def invite_join(request, code):
+    """ 访问邀请码 """
+    invite_object = models.ProjectInvite.objects.filter(code=code).first()
+    if not invite_object:
+        return render(request, 'invite_join.html', {'error': '邀请码不存在'})
+    if invite_object.project.creator == request.tracer.user:
+        return render(request, 'invite_join.html', {'error': '您是创建者，无需重复加入'})
+    exists = models.ProjectUser.objects.filter(project=invite_object.project, user=request.tracer.user).exists()
+    if exists:
+        return render(request, 'invite_join.html', {'error': '您已是参与者， 无需重复加入'})
+
+    # 最多允许的成员
+    max_member = request.tracer.price_policy.project_member
+
+    # 目前所有成员
+    current_member = models.ProjectUser.objects.filter(project=invite_object.project).count()
+    current_member += 1
+    if current_member >= max_member:
+        return render(request, 'invite_join.html', {'error': '项目成员超限，请升级套餐'})
+
+    current_datetime = datetime.datetime.now()
+    limit_datetime = invite_object.create_datetime + datetime.timedelta(minutes=invite_object.period)
+    if current_datetime > limit_datetime:
+        return render(request, 'invite_join.html', {'error': '邀请码已过期'})
+
+    # 数量限制
+    if invite_object.count:
+        if invite_object.use_count >= invite_object.count:
+            return render(request, 'invite_join.html', {'error': '邀请码数量已使用完'})
+        invite_object.use_count += 1
+        invite_object.save()
+    # 无数量限制
+    models.ProjectUser.objects.create(user=request.tracer.user, project=invite_object.project)
+    return render(request, 'invite_join.html', {'project': invite_object.project})

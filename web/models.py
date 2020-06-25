@@ -176,3 +176,20 @@ class IssuesReply(models.Model):
     creator = models.ForeignKey(verbose_name='创建者', to='UserInfo', related_name='create_reply')
     create_datetime = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     reply = models.ForeignKey(verbose_name='回复', to='self', null=True, blank=True)
+
+
+class ProjectInvite(models.Model):
+    """ 项目邀请码 """
+    project = models.ForeignKey(verbose_name='项目', to='ProjectInfo')
+    code = models.CharField(verbose_name='邀请码', max_length=64, unique=True)
+    count = models.PositiveIntegerField(verbose_name='数量', null=True, blank=True, help_text='空表示无数量限制')
+    use_count = models.PositiveIntegerField(verbose_name='已使用数量',  default=0)
+    period_choices = (
+        (30, '30分钟'),
+        (60, '1小时'),
+        (300, '5小时'),
+        (1440, '24小时'),
+    )
+    period = models.IntegerField(verbose_name='有效期', choices=period_choices, default=1440)
+    create_datetime = models.DateTimeField(auto_now_add=True)
+    creator = models.ForeignKey(verbose_name='创建者', to='UserInfo', related_name='create_invite')
