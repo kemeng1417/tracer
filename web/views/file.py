@@ -124,7 +124,9 @@ def cos_credential(request, project_id):
     if project_use_space + total_size > project_space:
         msg = '文件空间不足，请升级套餐！'
         return JsonResponse({'status': False, 'error': msg})
+
     data_dict = credential(request.tracer.project.bucket, request.tracer.project.region)
+
     return JsonResponse({'status': True, 'data': data_dict})
 
 

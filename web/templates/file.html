@@ -256,7 +256,7 @@
                         $.post(COS_CREDENTIAL, JSON.stringify(checkFileList), function (res) {
                             if (res.status) {
                                 var credentials = res.data && res.data.credentials;
-                                if (!res.data || !credentials) return console.error('credentials invalid');
+                                {#if (!res.data || !credentials) return console.error('credentials invalid');#}
                                 callback({
                                     TmpSecretId: credentials.tmpSecretId,
                                     TmpSecretKey: credentials.tmpSecretKey,

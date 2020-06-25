@@ -134,11 +134,12 @@ def delete_file_list(bucket, region, key_list):
 
 
 def credential(bucket, region, ):
+
     from sts.sts import Sts
 
     config = {
         # 临时密钥有效时长，单位是秒
-        'duration_seconds': 1800,
+        'duration_seconds': 60,
         'secret_id': settings.TENCENT_SECRET_ID,
         # 固定密钥
         'secret_key': settings.TENCENT_SECRET_KEY,
@@ -172,7 +173,9 @@ def credential(bucket, region, ):
 
     sts = Sts(config)
     # 字典中包含了临时凭证
+
     result_dict = sts.get_credential()
+
     return result_dict
 
 
