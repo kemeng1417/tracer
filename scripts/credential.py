@@ -4,9 +4,9 @@ config = {
     # 临时密钥有效时长，单位是秒（30分钟=1800秒）
     'duration_seconds':1800,
     # 固定密钥 id
-    'secret_id': 'AKID8D1Yn7HDxQbR0EnMRFl0yfASkl68twtb',
+    'secret_id': '',
     # 固定密钥 key
-    'secret_key':'axjFUTbRAdpjMjqrb3SqxsR0JNAfsnX0',
+    'secret_key':'',
     # 换成你的 bucket
     'bucket': 'kmk-1302167637',
     # 换成 bucket 所在地区

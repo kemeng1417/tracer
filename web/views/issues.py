@@ -1,17 +1,107 @@
 import json
 
 from django.shortcuts import render
+from django.utils.safestring import mark_safe
+
 from web.forms.issues import IssuesModelForm, IssuesReplyForm
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
 from web import models
 from utils.pagination import Pagination
 from django.views.decorators.csrf import csrf_exempt
 
 
+class CheckFilter(object):
+    def __init__(self, name, data_list, request):
+        self.name = name
+        self.data_list = data_list
+        self.request = request
+
+    def __iter__(self):
+        for item in self.data_list:
+            key = str(item[0])
+            text = item[1]
+            ck = ''
+            value_list = self.request.GET.getlist(self.name)
+            if key in value_list:
+                ck = 'checked'
+                value_list.remove(key)
+            else:
+                value_list.append(key)
+
+            # 生成过滤的url
+            # 在当前url的基础上添加
+            from django.http import QueryDict
+            query_dict = self.request.GET.copy()
+            query_dict._mutable = True
+            query_dict.setlist(self.name, value_list)  # {'status':[1,2,3],'xx':[1,]}
+
+            # 筛选时处理分页
+            if 'page' in query_dict:
+                query_dict.pop('page')
+
+            param_url = query_dict.urlencode()
+            if param_url:
+
+                url = '{}?{}'.format(self.request.path_info, param_url)  # status=1&status=2&status=3&&xx=1
+            else:
+                url = self.request.path_info
+            tpl = '<a class="cell" href="{url}"><input type="checkbox" {ck} ><label>{text}</label></a>'
+            html = tpl.format(url=url, ck=ck, text=text)
+            yield mark_safe(html)
+
+
+class SelectFilter(object):
+    def __init__(self, name, data_list, request):
+        self.name = name
+        self.data_list = data_list
+        self.request = request
+
+    def __iter__(self):
+        yield mark_safe('<select class="select2" multiple style="width:100%;">')
+        for item in self.data_list:
+            key = str(item[0])
+            text = item[1]
+            selected = ''
+            value_list = self.request.GET.getlist(self.name)
+            if key in value_list:
+                selected = 'selected'
+                value_list.remove(key)
+            else:
+                value_list.append(key)
+            from django.http import QueryDict
+            query_dict = self.request.GET.copy()
+            query_dict._mutable = True
+            query_dict.setlist(self.name, value_list)  # {'status':[1,2,3],'xx':[1,]}
+
+            # 筛选时处理分页
+            if 'page' in query_dict:
+                query_dict.pop('page')
+
+            param_url = query_dict.urlencode()
+            if param_url:
+
+                url = '{}?{}'.format(self.request.path_info, param_url)  # status=1&status=2&status=3&&xx=1
+            else:
+                url = self.request.path_info
+
+            html = '<option value="{url}" {selected}>{text}</option>'.format(url=url, selected=selected, text=text)
+            yield mark_safe(html)
+        yield mark_safe('</select>')
+
+
 def issues(request, project_id):
     """ 问题展示及添加 """
     if request.method == 'GET':
-        queryset = models.Issues.objects.filter(project=request.tracer.project)
+        # 筛选条件（根据用户通过GET传过来的参数
+        allow_filter_list = ['issues_type', 'status', 'priority', 'assign', 'attention']
+        condition = {}
+        for name in allow_filter_list:
+            value_list = request.GET.getlist(name)
+            if not value_list:
+                continue
+
+            condition['{}__in'.format(name)] = value_list
+        queryset = models.Issues.objects.filter(project=request.tracer.project).filter(**condition)
         page_object = Pagination(
             current_page=request.GET.get('page'),
             all_count=queryset.count(),
@@ -20,8 +110,27 @@ def issues(request, project_id):
         )
         issues_object_list = queryset[page_object.start:page_object.end]
         form = IssuesModelForm(request)
-        content = {'form': form, 'issues_object_list': issues_object_list, 'page_html': page_object.page_html()}
 
+        issues_type_list = models.IssuesType.objects.filter(project_id=project_id).values_list('id', 'title')
+
+        project_total_user = [(request.tracer.project.creator_id, request.tracer.project.creator.username), ]
+        project_join_user = models.ProjectUser.objects.filter(project_id=project_id).values_list('user_id',
+                                                                                                 'user__username')
+
+        project_total_user.extend(project_join_user)
+        content = {'form': form,
+                   'issues_object_list': issues_object_list,
+                   'page_html': page_object.page_html(),
+                   'filter_list': [
+                       {'title': '问题类型', 'filter': CheckFilter('issues_type', issues_type_list, request)},
+                       {'title': '状态', 'filter': CheckFilter('status', models.Issues.status_choices, request)},
+                       {'title': '优先级', 'filter': CheckFilter('priority', models.Issues.priority_choices, request)},
+                       {'title': '指派者', 'filter': SelectFilter('assign', project_total_user, request)},
+                       {'title': '关注者', 'filter': SelectFilter('attention', project_total_user, request)},
+
+                   ],
+
+                   }
         return render(request, 'issues.html', content)
 
     form = IssuesModelForm(request, data=request.POST)
@@ -204,4 +313,4 @@ def issues_change(request, project_id, issues_id):
         return JsonResponse({'status': True, 'data': create_reply_record(change_record)})
     # 生成操作记录
 
-    return JsonResponse({'status':True,'error':'gun'})
+    return JsonResponse({'status': True, 'error': 'gun'})

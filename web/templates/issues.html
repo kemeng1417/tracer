@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="{% static 'plugin/editor-md/css/editormd.min.css' %}">
     <link rel="stylesheet" href="{% static 'plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
     <link rel="stylesheet" href="{% static 'plugin/bootstrap-select/css/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugin/select2/css/select2.min.css' %}">
     <style>
         .issues-list .number {
             width: 100px;
@@ -40,6 +41,35 @@
         .pd-0 {
             padding: 0 !important;
         }
+
+        /* 筛选 */
+        .filter-area .item {
+            margin-bottom: 15px;
+        }
+
+        .filter-area .item .title {
+            padding: 5px 0;
+        }
+
+        .filter-area .item .check-list a {
+            text-decoration: none;
+            display: inline-block;
+            min-width: 65px;
+        }
+
+        .filter-area .item .check-list label {
+            font-weight: 200;
+            font-size: 13px;
+            margin-left: 3px;
+        }
+
+        .filter-area .item .check-list a:hover {
+            font-weight: 300;
+        }
+
+        .filter-area .item .check-list .cell {
+            margin-right: 10px;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -47,8 +77,21 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading"><i class="fa fa-search" aria-hidden="true"></i> 筛 选</div>
-                <div class="panel-body">
-                    Panel content
+                <div class="panel-body filter-area">
+                    {% for filters in filter_list %}
+                        <div class="item">
+                            <div class="title">{{ filters.title }}</div>
+                            <div class="check-list">
+                                {% for item in filters.filter %}
+                                    {{ item }}
+                                {% endfor %}
+
+                            </div>
+                        </div>
+                    {% endfor %}
+
+
+
                 </div>
             </div>
         </div>
@@ -275,6 +318,8 @@
     <script src="{% static 'plugin/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
     <script src="{% static 'plugin/bootstrap-select/js/bootstrap-select.min.js' %}"></script>
     <script src="{% static 'plugin/bootstrap-select/js/i18n/defaults-zh_CN.min.js' %}"></script>
+    <script src="{% static 'plugin/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'plugin/select2/js/i18n/zh-CN.js' %}"></script>
     <script>
         var WIKI_UPLOAD_URL = "{% url 'wiki_upload' project_id=request.tracer.project.id %}";
         var POST_ISSUES = "{% url 'issues' project_id=request.tracer.project.id %}";
@@ -282,7 +327,26 @@
             bindBootStrapShowEvent();
             bindDatePicker();
             bindAddSubmit();
+            bindClickCheckFilter();
+            initSelect2();
         });
+
+        function initSelect2() {
+            $('.select2').select2().on('select2:select', function (e) {
+                //console.log(e.params.data.id);
+                // 选中触发
+                location.href = e.params.data.id
+            }).on('select2:unselect', function (e) {
+                //console.log(e.params.data);
+                // 取消触发
+                location.href =e.params.data.id
+            });
+        }
+        function bindClickCheckFilter() {
+            $('.filter-area').find(':checkbox').click(function () {
+                location.href = $(this).parent().attr('href');
+            })
+        }
 
         function bindDatePicker() {
             $('#id_start_date,#id_end_date').datepicker({
