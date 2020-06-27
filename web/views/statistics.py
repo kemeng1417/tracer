@@ -24,7 +24,7 @@ def statistics_priority(request, project_id):
 
     # 数据库查询所有分组得到的数据
     result = models.Issues.objects.filter(project_id=project_id, create_datetime__gte=start,
-                                          create_datetime__lte=end).values(
+                                          create_datetime__lt=end).values(
         'priority').annotate(ct=Count('id'))
     print(result)
     for item in result:
