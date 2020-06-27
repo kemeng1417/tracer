@@ -51,4 +51,4 @@ def statistics_project_user(request, project_id):
             ]
         }
     }
-    return JsonResponse({'status': True, 'data':})
+    return JsonResponse({'status': True, 'data':context})
