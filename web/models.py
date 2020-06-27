@@ -43,6 +43,7 @@ class Transaction(models.Model):
 
 
 class ProjectInfo(models.Model):
+    """ 项目 """
     color_choices = ((0, '#00F5FF'),
                      (1, '#00FF00'),
                      (2, '#0000FF'),

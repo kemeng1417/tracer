@@ -352,6 +352,8 @@ def invite_url(request, project_id):
 
 def invite_join(request, code):
     """ 访问邀请码 """
+
+    current_datetime = datetime.datetime.now()
     invite_object = models.ProjectInvite.objects.filter(code=code).first()
     if not invite_object:
         return render(request, 'invite_join.html', {'error': '邀请码不存在'})
@@ -361,16 +363,25 @@ def invite_join(request, code):
     if exists:
         return render(request, 'invite_join.html', {'error': '您已是参与者， 无需重复加入'})
 
-    # 最多允许的成员
-    max_member = request.tracer.price_policy.project_member
+    # 最多允许的成员(要进入项目的创建者的限制)
+    # max_member = request.tracer.price_policy.project_member # 有bug
 
+    max_transaction = models.Transaction.objects.filter(user=invite_object.project.creator).order_by('-id').first()
+    # 是否已经过期，过期则使用免费的额度
+    if max_transaction.price_policy.category == 1:
+        max_member = max_transaction.price_policy.project_member
+    else:
+        if max_transaction.end_time < current_datetime:
+            free_object = models.PricePolicy.objects.filter(category=1).first()
+            max_member = free_object.project_menber
+        else:
+            max_member = max_transaction.price_policy.project_member
     # 目前所有成员
     current_member = models.ProjectUser.objects.filter(project=invite_object.project).count()
     current_member += 1
     if current_member >= max_member:
         return render(request, 'invite_join.html', {'error': '项目成员超限，请升级套餐'})
 
-    current_datetime = datetime.datetime.now()
     limit_datetime = invite_object.create_datetime + datetime.timedelta(minutes=invite_object.period)
     if current_datetime > limit_datetime:
         return render(request, 'invite_join.html', {'error': '邀请码已过期'})
@@ -383,4 +394,6 @@ def invite_join(request, code):
         invite_object.save()
     # 无数量限制
     models.ProjectUser.objects.create(user=request.tracer.user, project=invite_object.project)
+    invite_object.project.join_count += 1
+    invite_object.project.save()
     return render(request, 'invite_join.html', {'project': invite_object.project})
