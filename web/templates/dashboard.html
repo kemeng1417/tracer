@@ -204,8 +204,8 @@
         var INIT_CHART = "{% url 'issues_chart' project_id=request.tracer.project.id %}";
 
         Highcharts.setOptions({
-            global:{
-                useUTC:false
+            global: {
+                useUTC: false
             }
         });
         $(function () {
@@ -260,12 +260,12 @@
             };
 
             $.ajax({
-                url:INIT_CHART,
+                url: INIT_CHART,
                 type: 'GET',
-                dataType:'JSON',
-                success:function (res) {
+                dataType: 'JSON',
+                success: function (res) {
                     config.series[0].data = res.data;
-                    var chart = Highcharts.chart('chart',config );
+                    var chart = Highcharts.chart('chart', config);
                 }
             })
         }

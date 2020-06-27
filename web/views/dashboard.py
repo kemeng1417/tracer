@@ -27,7 +27,7 @@ def dashboard(request, project_id):
     context = {
         'status_dict': status_dict,
         'user_list': user_list,
-        'top_ten_object':top_ten,
+        'top_ten_object': top_ten,
     }
     return render(request, 'dashboard.html', context)
 
@@ -41,11 +41,12 @@ def issues_chart(request, project_id):
     for i in range(0, 30):
         date = today - datetime.timedelta(days=i)
         data_dict[date.strftime('%Y-%m-%d')] = [time.mktime(date.timetuple()) * 1000, 0]
-    result = models.Issues.objects.filter(project_id=project_id, create_datetime__gte=today-datetime.timedelta(days=30)).extra(
-        select={'ctime':'strftime("%%Y-%%m-%%d, web_issues.create_datetime")'}).values('ctime').annotate(ct=Count('id'))
+    result = models.Issues.objects.filter(project_id=project_id,
+                                          create_datetime__gte=today - datetime.timedelta(days=30)).extra(
+        select={'ctime': 'strftime("%%Y-%%m-%%d, web_issues.create_datetime")'}).values('ctime').annotate(
+        ct=Count('id'))
 
     for item in result:
         data_dict[item['ctime'].split(",")[0]][1] = item['ct']
 
-
-    return JsonResponse({'status':True, 'data':list(data_dict.values())})
+    return JsonResponse({'status': True, 'data': list(data_dict.values())})
