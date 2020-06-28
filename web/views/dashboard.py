@@ -46,7 +46,6 @@ def issues_chart(request, project_id):
                                           create_datetime__gte=today - datetime.timedelta(days=30)).extra(
         select={'ctime': 'strftime("%%Y-%%m-%%d", web_issues.create_datetime)'}).values('ctime').annotate(
         ct=Count('id'))
-    print(result)
     for item in result:
         data_dict[item['ctime']][1] = item['ct']
 

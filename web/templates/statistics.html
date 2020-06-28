@@ -130,6 +130,7 @@
             })
         }
 
+
         function projectUser(start, end) {
             var config = {
                 chart: {
@@ -189,14 +190,15 @@
                     data: [3, 4, 4]
                 }]
             };
-            // Highcharts.chart('projectUser', config);
+            {#Highcharts.chart('projectUser', config);#}
             $.ajax({
-                url: PROJECT_USER_API,
+                url: PROJECT_USER_URL,
                 type: "GET",
                 data: {start: start, end: end},
                 dataType: "JSON",
                 success: function (res) {
                     config.xAxis.categories = res.data.categories;
+                    console.log(res.data);
                     config.series = res.data.series;
                     Highcharts.chart('projectUser', config);
 
@@ -204,4 +206,6 @@
             })
         }
     </script>
+
+
 {% endblock %}
