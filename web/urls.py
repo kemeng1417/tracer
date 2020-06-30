@@ -18,6 +18,10 @@ urlpatterns = [
     url(r'^img/code/$', account.img_code, name='img_code'),
     url(r'^index/$', home.index, name='index'),
 
+    # 支付管理
+    url(r'^price/$', home.price, name='price'),
+    url(r'^price/payment/(?P<price_id>\d+)/$', home.payment, name='payment'),
+    url(r'^pay/$', home.pay, name='pay'),
     # 项目管理
     url(r'^project/list/$', project.project_list, name='project_list'),
     url(r'^project/star/(?P<project_type>\w+)/(?P<project_id>\d+)/$', project.project_star, name='project_star'),
