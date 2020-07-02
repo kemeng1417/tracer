@@ -2,7 +2,7 @@ import datetime
 import json
 from utils.alipay import AliPay
 from django_redis import get_redis_connection
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from web import models
 from utils.encrypt import uid
 from django.conf import settings
@@ -159,7 +159,7 @@ def pay(request):
         count=context['number'],
         price=pay_price,
     )
-    print(settings.ALI_PRIVATE_KEY_PATH)
+
     ali_pay = AliPay(
         appid=settings.ALI_APPID,
         app_notify_url=settings.ALI_NOTIFY_URL,
@@ -176,3 +176,41 @@ def pay(request):
 
     pay_url = '{}?{}'.format(settings.ALI_GATEWAY, query_params)
     return redirect(pay_url)
+
+
+def pay_notify(request):
+    """ 支付成功后跳转的页面 """
+    ali_pay = AliPay(
+        appid=settings.ALI_APPID,
+        app_notify_url=settings.ALI_NOTIFY_URL,
+        app_private_key_path=settings.ALI_PRIVATE_KEY_PATH,
+        alipay_public_key_path=settings.ALI_PUBLIC_KEY_PATH,
+        return_url=settings.ALI_RETURN_URL,
+    )
+    if request.method == 'GET':
+        # 只做跳转
+        params = request.GET.dict()
+        sign = params.pop('sign', None)
+        status = ali_pay.verify(params, sign)
+        if status:
+            return HttpResponse('支付完成')
+        return HttpResponse('支付失败')
+    else:
+        from urllib.parse import parse_qs
+        body_str = request.body.decode('utf-8')
+        post_data = parse_qs(body_str)
+        post_dict = {}
+        for k, v in post_data.items():
+            post_dict[k] = v[0]
+        sign = post_dict.pop('sign', None)
+        status = ali_pay.verify(post_dict, sign)
+        if status:
+            current_time = datetime.datetime.now()
+            out_trade_no = post_dict['out_trade_no']
+            _object = models.Transaction.objects.filter(order=out_trade_no).first()
+            _object.status = 2
+            _object.start_time = current_time
+            _object.end_time = current_time + datetime.timedelta(days=365 * _object.count)
+            _object.save()
+            return HttpResponse('success')
+    return HttpResponse('error')

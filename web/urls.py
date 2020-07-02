@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^price/$', home.price, name='price'),
     url(r'^price/payment/(?P<price_id>\d+)/$', home.payment, name='payment'),
     url(r'^pay/$', home.pay, name='pay'),
+    url(r'^pay/notify/$', home.pay_notify, name='pay_notify'),
     # 项目管理
     url(r'^project/list/$', project.project_list, name='project_list'),
     url(r'^project/star/(?P<project_type>\w+)/(?P<project_id>\d+)/$', project.project_star, name='project_star'),
