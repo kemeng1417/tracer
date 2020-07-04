@@ -27,11 +27,11 @@ def file(request, project_id):
             breadcrumb_list.insert(0, model_to_dict(parent, ['id', 'name']))
             parent = parent.parent
 
-        # 当前目录下所有的文件和文件夹获取到
+        # 当前目录下所有的文件和文件夹获取到,判断是否是根目录
         queryset = models.FileRepository.objects.filter(project=request.tracer.project)
-        if parent_object:
+        if parent_object:  # 进入了某个文件夹
             file_object_list = queryset.filter(parent=parent_object).order_by('-file_type')
-        else:
+        else:  # 在根目录
             file_object_list = queryset.filter(parent__isnull=True).order_by('-file_type')
         form = FolderModelForm(request, parent_object)
         context = {

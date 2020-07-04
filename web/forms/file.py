@@ -18,7 +18,7 @@ class FolderModelForm(BootStrapForm, forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data['name']
         queryset = models.FileRepository.objects.filter(file_type=2, name=name, project=self.request.tracer.project)
-        if self.parent_object:
+        if self.parent_object: # 进入了某一个目录
             exists = queryset.filter(parent=self.parent_object).exists()
         # 数据库判断当前目录此文件夹是否已存在
         else:
