@@ -22,6 +22,7 @@ def create_bucket(bucket, region='ap-chengdu'):
         Bucket=bucket,
         ACL='public-read'  # private/public-read/public-read-write
     )
+    # 解决跨域问题
     cors_config = {
         'CORSRule': [
             {

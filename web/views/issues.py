@@ -3,7 +3,6 @@ import datetime
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-
 from web.forms.issues import IssuesModelForm, IssuesReplyForm, InviteModelForm
 from django.http import JsonResponse, QueryDict
 from web import models
