@@ -40,7 +40,7 @@ class CheckFilter(object):
             if 'page' in query_dict:
                 query_dict.pop('page')
 
-            param_url = query_dict.urlencode()
+            param_url = query_dict.urlencode() # 转换为status=1&status=2&status=3
             if param_url:
 
                 url = '{}?{}'.format(self.request.path_info, param_url)  # status=1&status=2&status=3&&xx=1
@@ -97,7 +97,7 @@ def issues(request, project_id):
         allow_filter_list = ['issues_type', 'status', 'priority', 'assign', 'attention']
         condition = {}
         for name in allow_filter_list:
-            value_list = request.GET.getlist(name)
+            value_list = request.GET.getlist(name) # 获取所有的值 [1,2,3]
             if not value_list:
                 continue
 
