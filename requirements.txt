@@ -6,7 +6,7 @@ dicttoxml==1.7.4
 Django==1.11.28
 django-redis==4.11.0
 idna==2.9
-Pillow==7.1.2
+Pillow==8.2.0
 pycryptodome @ file:///D:/km_py/tracer/files/pycryptodome-3.9.8-cp37-cp37m-win_amd64.whlpu
 pytz==2020.1
 qcloud-python-sts==3.0.3
